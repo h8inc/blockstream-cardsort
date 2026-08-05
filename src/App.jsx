@@ -249,7 +249,7 @@ export default function App() {
             <Radio name="lens" value="toggle" sel={lens} set={setLens}>Both — let me toggle between them</Radio>
           </div>
           <div className="qbox">
-            <div className="qt">Your cash (dollars) isn't held in any wallet. Where does it belong?</div>
+            <div className="qt">Your cash (dollars) is held by Blockstream, not in a wallet you hold keys for. Where should it appear?</div>
             <Radio name="cashHome" value="own_row" sel={cashHome} set={setCashHome}>On its own row on the first screen</Radio>
             <Radio name="cashHome" value="in_assets" sel={cashHome} set={setCashHome}>Inside the asset list, next to bitcoin and tether</Radio>
             <Radio name="cashHome" value="in_wallets" sel={cashHome} set={setCashHome}>In the wallet list, as its own cash account</Radio>

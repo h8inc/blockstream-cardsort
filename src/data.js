@@ -11,7 +11,7 @@ const CONFIG = {
 // Small pieces (w<1) pack side by side when adjacent — like a real app row.
 const IMG = {}; /*IMG_DATA*/
 const SHORT = {total:"Total balance", total_chart:"Balance chart", px_num:"BTC price pill",
-  px_chart:"BTC price chart", market:"BTC/USD market row", cash:"Cash", cash_act:"Cash buttons", wallets:"My wallets",
+  px_chart:"BTC price chart", market:"BTC/USD market row", cash_act:"Cash buttons", wallets:"My wallets",
   assets:"My assets", actions:"Buy·Send·Receive", activity:"Recent activity",
   offers:"Offers", hide:"Hide balances", notif:"Notifications", jade:"Jade status"};
 // Pile sections — order here is the order participants see them in.
@@ -29,12 +29,10 @@ const CARDS = [
    desc:"Your total worth in dollars — everything, across all wallets and assets."},
   {id:"total_chart",label:"Total balance — chart", group:"balances", h:106, w:1,
    desc:"How that total changed over time, as a chart."},
-  {id:"wallets",    label:"Wallet list", group:"balances", h:329, w:1,
-   desc:"Every wallet you have (Spending, Savings, Vault…) with its own balance."},
+  {id:"wallets",    label:"Wallet list", group:"balances", h:413, w:1,
+   desc:"Every wallet you have (Spending, Savings, Vault…) plus your cash, held as its own account."},
   {id:"assets",     label:"Asset list", group:"balances", h:226, w:1,
    desc:"The same money grouped by asset instead: bitcoin, tether, cash."},
-  {id:"cash",       label:"Cash — as its own row", group:"balances", h:60, w:1,
-   desc:"Your dollar cash on a dedicated row, separate from the wallets. Note: this same balance also appears inside the Asset list."},
   {id:"px_num",     label:"BTC price — tiny pill", group:"price", h:34, w:0.5,
    desc:"The bitcoin price squeezed into a small pill. Tap it to see a chart."},
   {id:"market",     label:"BTC/USD — market row", group:"price", h:64, w:1,
@@ -91,13 +89,19 @@ const FACES = {
     +'<svg width="76" height="20" viewBox="0 0 76 20" fill="none" style="display:block">'
     +'<polyline points="1,17 4,13 7,15 10,10 13,12 16,8 19,10 22,6 25,9 28,5 31,8 34,4 37,7 40,5 43,8 46,4 49,7 52,5 55,8 58,5 61,7 64,4 67,7 70,6 73,8 75,7" stroke="#00c60d" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/></svg>'
     +'<span class="f-pos" style="font-size:13px;font-weight:600">+1.00%</span></div></span></div>',
-  cash:frow('$','c-g','Cash','Global · outside your wallets','4,520.00 USD'),
   cash_act:'<div class="f-btnrow"><span class="f-btn">＋ Add Money</span><span class="f-btn">↑ Withdraw</span><span class="f-btn">₿ Buy Bitcoin</span></div>',
   wallets:
     wcard('Spending','📱','9,000 USD','<i style="flex:667;background:#f7931a"></i><i style="flex:200;background:#ffd54f"></i><i style="flex:133;background:#26a69a"></i>',
       '<span><span class="f-dot" style="background:#f7931a"></span>0.05 On-chain</span><span><span class="f-dot" style="background:#ffd54f"></span>0.015 Lightning</span><span><span class="f-dot" style="background:#26a69a"></span>1,200 USDT</span>')
     +wcard('Savings','🔒','60,000 USD','<i style="flex:1;background:#f7931a"></i>','<span><span class="f-dot" style="background:#f7931a"></span>0.5 On-chain</span>')
     +wcard('Vault','📱🔒☁','101,040 USD','<i style="flex:1;background:#f7931a"></i>','<span><span class="f-dot" style="background:#f7931a"></span>0.842 On-chain</span>')
+    // Cash is custodial, so it reads as an account rather than a key-holding wallet:
+    // dashed border + "custodial" tag keep the grouping without implying self-custody.
+    +'<div class="f-card" style="padding:13px 14px;margin-bottom:14px;border-style:dashed">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center">'
+    +'<span class="f-name">Cash <span style="font-size:9px;font-weight:600;color:#a0a0a0;border:1px solid #2b333b;border-radius:99px;padding:1px 6px;margin-left:3px;vertical-align:2px">CUSTODIAL</span></span>'
+    +'<span class="f-amt">4,520 USD</span></div>'
+    +'<div class="f-sub" style="margin-top:4px">US dollars · held by Blockstream</div></div>'
     +'<div class="f-card" style="height:44px;display:flex;align-items:center;justify-content:center;color:#a0a0a0;font-weight:500;font-size:13.5px">＋&nbsp; Set Up a New Wallet</div>',
   assets:'<div class="f-card" style="padding:13px 14px;margin-bottom:8px">'
     +'<div style="display:flex;align-items:center;gap:10px"><span class="f-coin c-b" style="width:28px;height:28px;font-size:12px">₿</span><span class="f-name" style="flex:1;font-size:16px">Bitcoin</span>'
@@ -105,7 +109,7 @@ const FACES = {
     +'<div class="f-bar"><i style="flex:989;background:#f7931a"></i><i style="flex:11;background:#ffd54f"></i></div>'
     +'<div class="f-legend"><span><span class="f-dot" style="background:#f7931a"></span>1.392 On-chain</span><span><span class="f-dot" style="background:#ffd54f"></span>0.015 Lightning</span></div></div>'
     +frow('T','c-t','Tether USD','In Spending','<span style="color:#00bcff">1,200 USDT</span><div class="f-sub">1,200 USD</div>')
-    +frow('$','c-g','Cash','Global · outside your wallets','4,520.00 USD'),
+    +frow('$','c-g','Cash','In your Cash account','4,520.00 USD'),
   actions:'<div class="f-acts"><span class="f-act pri"><span class="ic">＋</span>Buy</span><span class="f-act"><span class="ic">↗</span>Send</span><span class="f-act"><span class="ic">↙</span>Receive</span></div>',
   activity:'<div class="f-sec">Recent Activity</div>'
     +frow('↙','c-b','Received bitcoin','To Savings · Yesterday','<span style="color:#00bcff">+0.0210 BTC</span><div class="f-sub">2,520 USD</div>')
