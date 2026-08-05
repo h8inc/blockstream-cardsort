@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Card sort results — analyzer</title>
+<style>
+  .viz-root, :root{
+    color-scheme: light;
+    --surface:#fcfcfb; --page:#f9f9f7; --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
+    --grid:#e1e0d9; --baseline:#c3c2b7; --ring:rgba(11,11,11,0.10);
+    --top:#2a78d6; --scroll:#86b6ef; --parked:#d5d4cc; --accent:#2a78d6; --warn:#d03b3b;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ color-scheme: dark;
+      --surface:#1a1a19; --page:#0d0d0d; --ink:#ffffff; --ink2:#c3c2b7; --muted:#898781;
+      --grid:#2c2c2a; --baseline:#383835; --ring:rgba(255,255,255,0.10);
+      --top:#3987e5; --scroll:#1c5cab; --parked:#4a4a46; --accent:#3987e5;
+    }
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--page); color:var(--ink);
+    font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif; padding:24px 20px 80px;}
+  .wrap{max-width:1060px; margin:0 auto;}
+  h1{font-size:24px; margin:0 0 4px;}
+  h2{font-size:17px; margin:26px 0 10px;}
+  .sub{color:var(--ink2); margin-bottom:18px;}
+  .panel{background:var(--surface); border:1px solid var(--ring); border-radius:14px; padding:18px; margin:14px 0;}
+  .loadrow{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+  input[type=text]{flex:1; min-width:240px; border:1.5px solid var(--grid); border-radius:9px;
+    padding:9px 12px; font:inherit; background:var(--surface); color:var(--ink);}
+  textarea{width:100%; min-height:70px; border:1.5px solid var(--grid); border-radius:9px; padding:9px; font:13px monospace; background:var(--surface); color:var(--ink);}
+  .btn{background:var(--ink); color:var(--page); border:none; border-radius:9px; padding:9px 16px;
+    font-size:14px; font-weight:600; cursor:pointer;}
+  .btn.sec{background:transparent; color:var(--ink); border:1.5px solid var(--ink);}
+  .filters{display:flex; gap:16px; flex-wrap:wrap; align-items:center; font-size:14px; color:var(--ink2);}
+  .filters label{display:flex; gap:6px; align-items:center; cursor:pointer;}
+  .filters input[type=checkbox]{accent-color:var(--accent);}
+  .filters input[type=number]{width:64px; border:1.5px solid var(--grid); border-radius:7px; padding:4px 6px; font:inherit; background:var(--surface); color:var(--ink);}
+  .seg{display:flex; gap:0; border:1.5px solid var(--grid); border-radius:9px; overflow:hidden;}
+  .seg button{border:none; background:transparent; color:var(--ink2); padding:7px 14px; font:inherit; cursor:pointer;}
+  .seg button.on{background:var(--ink); color:var(--page); font-weight:650;}
+  /* stat tiles */
+  .tiles{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px;}
+  .tile{background:var(--surface); border:1px solid var(--ring); border-radius:12px; padding:14px 16px;}
+  .tile .v{font-size:28px; font-weight:700; line-height:1.1;}
+  .tile .l{font-size:12.5px; color:var(--muted); margin-top:4px;}
+  /* charts */
+  .legend{display:flex; gap:16px; font-size:12.5px; color:var(--ink2); margin:6px 0 12px;}
+  .legend span{display:flex; align-items:center; gap:6px;}
+  .sw{width:12px; height:12px; border-radius:3px; display:inline-block;}
+  .row{display:grid; grid-template-columns:210px 1fr 40px; gap:10px; align-items:center; margin:5px 0;}
+  .row .lab{font-size:13px; text-align:right; color:var(--ink);}
+  .row .n{font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums;}
+  .track{display:flex; height:20px; border-radius:4px; overflow:hidden; background:transparent; gap:2px;}
+  .segbar{height:100%; position:relative; min-width:0; border-radius:2px;}
+  .segbar:first-child{border-top-left-radius:4px; border-bottom-left-radius:4px;}
+  .segbar:last-child{border-top-right-radius:4px; border-bottom-right-radius:4px;}
+  .segbar .dl{position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:600; color:#fff;}
+  .segbar.light .dl{color:var(--ink);}
+  .bar1{height:18px; background:var(--top); border-radius:0 4px 4px 0;}
+  .dq{width:100%; border-collapse:collapse; font-size:13.5px;}
+  .dq th{text-align:left; font-size:12px; color:var(--muted); font-weight:600; border-bottom:1px solid var(--grid); padding:6px 8px;}
+  .dq td{padding:7px 8px; border-bottom:1px solid var(--grid); font-variant-numeric:tabular-nums;}
+  .dq td.v{font-weight:700;}
+  .verdict{font-size:12px; font-weight:700; padding:2px 8px; border-radius:99px;}
+  .v-dir{background:#e3f2e3; color:#0a5c0a;} .v-split{background:#fdeeda; color:#8a5a00;} .v-low{background:var(--grid); color:var(--ink2);}
+  @media (prefers-color-scheme: dark){ .v-dir{background:#123f12; color:#7fd97f;} .v-split{background:#4a3a10; color:#f2c063;} }
+  .missing li{margin:6px 0; color:var(--ink2);}
+  .tt{position:fixed; z-index:99; background:var(--ink); color:var(--page); font-size:12.5px;
+    padding:6px 10px; border-radius:8px; pointer-events:none; display:none; max-width:260px;}
+  .empty{color:var(--muted); text-align:center; padding:40px 0;}
+  details summary{cursor:pointer; color:var(--ink2); font-size:14px; margin:8px 0;}
+  .tablewrap{overflow-x:auto;}
+</style>
+</head>
+<body>
+<div class="wrap viz-root">
+  <h1>First-screen card sort — results</h1>
+  <div class="sub">Unmoderated companion to the moderated FigJam sessions · zones computed from each participant's stack vs the fold</div>
+
+  <div class="panel">
+    <div class="loadrow">
+      <input type="text" id="url" placeholder="https://YOUR-SITE.netlify.app/api/collect?token=blockstream-test  (or an Apps Script /exec URL)">
+      <button class="btn" onclick="fetchUrl()">Fetch</button>
+      <button class="btn sec" onclick="document.getElementById('files').click()">Load files…</button>
+      <input type="file" id="files" multiple accept=".json,.txt" style="display:none" onchange="loadFiles(this.files)">
+    </div>
+    <details><summary>…or paste raw JSON (an array of responses, or one per line)</summary>
+      <textarea id="paste" placeholder='[{"id":"r_x", ...}, ...]'></textarea>
+      <button class="btn sec" style="margin-top:8px" onclick="loadPaste()">Load pasted</button>
+    </details>
+    <div class="filters" style="margin-top:12px">
+      <strong style="color:var(--ink)">Quality filters:</strong>
+      <label><input type="checkbox" id="fDur" checked onchange="render()">min duration <input type="number" id="fDurV" value="45" onchange="render()"> s</label>
+      <label><input type="checkbox" id="fOne" checked onchange="render()">drop all-in-one-zone sorts</label>
+      <label><input type="checkbox" id="fScr" checked onchange="render()">drop screened-out</label>
+      <span style="margin-left:auto" class="seg" id="segButtons"></span>
+    </div>
+  </div>
+
+  <div id="results" style="display:none">
+    <div class="tiles" id="tiles"></div>
+
+    <h2>Where each piece landed <span style="font-weight:400;color:var(--muted)">(sorted by "top of screen" share)</span></h2>
+    <div class="panel">
+      <div class="legend">
+        <span><span class="sw" style="background:var(--top)"></span>Top — seen without scrolling</span>
+        <span><span class="sw" style="background:var(--scroll)"></span>Further down — scroll</span>
+        <span><span class="sw" style="background:var(--parked)"></span>Don't need</span>
+      </div>
+      <div id="zoneChart"></div>
+    </div>
+
+    <h2>The squeeze — "4 must stay visible"</h2>
+    <div class="panel"><div id="sqChart"></div></div>
+
+    <h2>Decision questions</h2>
+    <div class="panel"><table class="dq" id="dqTable"></table>
+      <div style="font-size:12px;color:var(--muted);margin-top:8px">Directional = ≥70% · Lean = 50–70% · below = unresolved. Counts are within the current segment filter.</div>
+    </div>
+
+    <h2>Closers</h2>
+    <div class="panel" id="closers"></div>
+
+    <h2>Write-ins ("anything missing?")</h2>
+    <div class="panel"><ul class="missing" id="missing"></ul></div>
+
+    <details><summary>Table view (all per-card numbers)</summary>
+      <div class="panel tablewrap"><table class="dq" id="bigTable"></table></div>
+    </details>
+
+    <div style="margin-top:16px; display:flex; gap:10px;">
+      <button class="btn" onclick="exportCSV()">Export CSV for the analysis workbook</button>
+      <button class="btn sec" onclick="exportRaw()">Download raw responses</button>
+    </div>
+  </div>
+  <div class="empty" id="empty">No data loaded yet — fetch from your endpoint, load files, or paste JSON above.</div>
+</div>
+<div class="tt" id="tt"></div>
+
+<script>
+/* Card set — keep IDENTICAL to index.html (workbook row order) */
+const CARDS = [
+  {id:"total",      label:"Total balance (USD/EUR)"},
+  {id:"total_chart",label:"Balance chart (total over time)"},
+  {id:"px_num",     label:"Bitcoin price (number + %)"},
+  {id:"px_chart",   label:"Price chart (BTC over time)"},
+  {id:"cash",    label:"Cash balance"},
+  {id:"cash_act",label:"Add/withdraw cash buttons"},
+  {id:"wallets", label:"List of my wallets"},
+  {id:"assets",  label:"List of my assets"},
+  {id:"actions", label:"Buy·Send·Receive row"},
+  {id:"activity",label:"Recent activity"},
+  {id:"offers",  label:"Offers & announcements"},
+  {id:"hide",    label:"Hide/show balances"},
+  {id:"notif",   label:"Notifications"},
+  {id:"jade",    label:"Jade/hardware status"},
+];
+let raw=[];         // all loaded responses
+let seg='all';      // segment filter
+const SEGS=[['all','All'],['multi','Multi-wallet'],['one','Single-wallet'],['privacy','Privacy-focused']];
+
+const $=id=>document.getElementById(id);
+function label(id){const c=CARDS.find(c=>c.id===id); return c?c.label:id;}
+
+/* ---------- loading ---------- */
+function ingest(items){
+  const seen=new Set(raw.map(r=>r.id));
+  let added=0;
+  for(const it of items){
+    if(it && it.stackOrder && !seen.has(it.id)){ raw.push(it); seen.add(it.id); added++; }
+    else if(it && it.screenedOut && !seen.has(it.id)){ raw.push(it); seen.add(it.id); added++; }
+  }
+  render();
+  return added;
+}
+function parseAny(text){
+  text=text.trim(); if(!text) return [];
+  try{ const j=JSON.parse(text); return Array.isArray(j)? j : (j.responses||[j]); }
+  catch(e){ // JSON lines
+    return text.split('\n').map(l=>{try{return JSON.parse(l)}catch(_){return null}}).filter(Boolean);
+  }
+}
+async function fetchUrl(){
+  const u=$('url').value.trim(); if(!u) return;
+  try{
+    const res=await fetch(u);
+    const t=await res.text();
+    const n=ingest(parseAny(t));
+    alert(n+' new responses loaded ('+raw.length+' total)');
+  }catch(e){ alert('Fetch failed: '+e.message+'\nTip: the Apps Script deployment must be set to "Anyone" access.'); }
+}
+async function loadFiles(files){
+  let n=0;
+  for(const f of files){ n+=ingest(parseAny(await f.text())); }
+  alert(n+' new responses loaded ('+raw.length+' total)');
+}
+function loadPaste(){ const n=ingest(parseAny($('paste').value)); alert(n+' new responses loaded'); }
+
+/* ---------- filtering ---------- */
+function oneZone(r){
+  const t=(r.aboveFold||[]).length, s=(r.stackOrder||[]).length-(r.aboveFold||[]).length, p=(r.parked||[]).length;
+  const tot=t+s+p; return tot>0 && (t===tot||s===tot||p===tot);
+}
+function inSeg(r){
+  if(seg==='all') return true;
+  if(seg==='multi') return r.screener && r.screener.wallets==='multi';
+  if(seg==='one') return r.screener && r.screener.wallets==='one';
+  if(seg==='privacy') return r.screener && r.screener.privacy==='agree';
+  return true;
+}
+function filtered(){
+  const minD=$('fDur').checked ? +$('fDurV').value : 0;
+  return raw.filter(r=>{
+    if($('fScr').checked && r.screenedOut) return false;
+    if(!r.stackOrder) return false;
+    if(minD && (r.durationSec||0) < minD) return false;
+    if($('fOne').checked && oneZone(r)) return false;
+    return inSeg(r);
+  });
+}
+
+/* ---------- stats ---------- */
+function median(a){ if(!a.length) return null; const s=[...a].sort((x,y)=>x-y); const m=Math.floor(s.length/2);
+  return s.length%2 ? s[m] : (s[m-1]+s[m])/2; }
+function perCard(rs){
+  return CARDS.map(c=>{
+    let top=0, scroll=0, park=0, keep=0; const ranks=[];
+    rs.forEach(r=>{
+      if((r.parked||[]).includes(c.id)) park++;
+      else if((r.aboveFold||[]).includes(c.id)) top++;
+      else if((r.stackOrder||[]).includes(c.id)) scroll++;
+      if((r.squeezeKeep||[]).includes(c.id)) keep++;
+      const i=(r.stackOrder||[]).indexOf(c.id); if(i>=0) ranks.push(i+1);
+    });
+    return {...c, top, scroll, park, keep, med:median(ranks), n:top+scroll+park};
+  });
+}
+
+/* ---------- render ---------- */
+function verdictChip(share){
+  if(share>=0.7) return '<span class="verdict v-dir">directional</span>';
+  if(share>=0.5) return '<span class="verdict v-split">lean</span>';
+  return '<span class="verdict v-low">unresolved</span>';
+}
+const tt=$('tt');
+function hover(el,text){
+  el.addEventListener('mousemove',e=>{tt.style.display='block'; tt.textContent=text;
+    tt.style.left=Math.min(e.clientX+14, innerWidth-270)+'px'; tt.style.top=(e.clientY+14)+'px';});
+  el.addEventListener('mouseleave',()=>tt.style.display='none');
+}
+function render(){
+  // segment buttons
+  $('segButtons').innerHTML='';
+  SEGS.forEach(([k,lab])=>{
+    const b=document.createElement('button'); b.textContent=lab; b.className=k===seg?'on':'';
+    b.onclick=()=>{seg=k; render();}; $('segButtons').appendChild(b);
+  });
+  const rs=filtered();
+  const anyData=raw.length>0;
+  $('results').style.display=anyData?'block':'none';
+  $('empty').style.display=anyData?'none':'block';
+  if(!anyData) return;
+
+  const excluded=raw.length - raw.filter(r=>!r.screenedOut).length;
+  const durs=rs.map(r=>r.durationSec||0).filter(Boolean);
+  $('tiles').innerHTML=[
+    [rs.length,'responses in view'],
+    [raw.length,'loaded (incl. filtered/screened)'],
+    [durs.length? Math.round(median(durs))+'s':'—','median duration'],
+    [rs.filter(r=>r.screener&&r.screener.wallets==='multi').length,'multi-wallet'],
+    [rs.filter(r=>r.screener&&r.screener.privacy==='agree').length,'privacy-focused'],
+  ].map(([v,l])=>`<div class="tile"><div class="v">${v}</div><div class="l">${l}</div></div>`).join('');
+
+  const pc=perCard(rs).sort((a,b)=> (b.top/(b.n||1)) - (a.top/(a.n||1)));
+  const N=rs.length||1;
+
+  // zone chart
+  $('zoneChart').innerHTML='';
+  pc.forEach(c=>{
+    const row=document.createElement('div'); row.className='row';
+    const total=c.n||1;
+    const seg1=Math.round(100*c.top/total), seg2=Math.round(100*c.scroll/total), seg3=100-seg1-seg2;
+    row.innerHTML=`<div class="lab">${c.label}</div>
+      <div class="track">
+        ${c.top? `<div class="segbar" style="flex:${c.top};background:var(--top)">${c.top/total>=0.14?`<span class="dl">${c.top}</span>`:''}</div>`:''}
+        ${c.scroll? `<div class="segbar light" style="flex:${c.scroll};background:var(--scroll)">${c.scroll/total>=0.14?`<span class="dl">${c.scroll}</span>`:''}</div>`:''}
+        ${c.park? `<div class="segbar light" style="flex:${c.park};background:var(--parked)">${c.park/total>=0.14?`<span class="dl">${c.park}</span>`:''}</div>`:''}
+      </div>
+      <div class="n">${seg1}%</div>`;
+    $('zoneChart').appendChild(row);
+    hover(row.querySelector('.track'), `${c.label} — top: ${c.top} (${seg1}%) · scroll: ${c.scroll} (${seg2}%) · don't need: ${c.park} (${seg3}%) · median rank ${c.med??'—'}`);
+  });
+
+  // squeeze chart
+  const sq=[...pc].sort((a,b)=>b.keep-a.keep);
+  const maxK=Math.max(1,...sq.map(c=>c.keep));
+  $('sqChart').innerHTML='';
+  sq.forEach(c=>{
+    if(!c.keep) return;
+    const row=document.createElement('div'); row.className='row';
+    row.innerHTML=`<div class="lab">${c.label}</div>
+      <div><div class="bar1" style="width:${100*c.keep/maxK}%"></div></div>
+      <div class="n">${c.keep}</div>`;
+    $('sqChart').appendChild(row);
+    hover(row, `${c.label}: kept in the final 4 by ${c.keep} of ${N} (${Math.round(100*c.keep/N)}%)`);
+  });
+
+  // decision questions
+  const g=id=>pc.find(c=>c.id===id);
+  function beats(a,b){ // count where rank(a)<rank(b), both placed
+    let n=0,d=0;
+    rs.forEach(r=>{const ia=(r.stackOrder||[]).indexOf(a), ib=(r.stackOrder||[]).indexOf(b);
+      if(ia>=0&&ib>=0){d++; if(ia<ib)n++;}});
+    return [n,d];
+  }
+  const [tbw,tbwD]=beats('total','wallets');
+  const cl=k=>rs.filter(r=>r.closers&&r.closers[k]).length||1;
+  const cnt=(k,v)=>rs.filter(r=>r.closers&&r.closers[k]===v).length;
+  const dq=[
+    ['Total balance beats wallet list (higher in the stack)', tbw, tbwD],
+    ['Bitcoin price number on the first screen (top zone)', g('px_num').top, N],
+    ['BTC price chart on the first screen (top zone)', g('px_chart').top, N],
+    ['Balance chart on the first screen (top zone)', g('total_chart').top, N],
+    ['Balance chart rejected entirely', g('total_chart').park, N],
+    ['Price number rejected entirely ("don\'t need")', g('px_num').park, N],
+    ['Cash balance on the first screen (top zone)', g('cash').top, N],
+    ['Cash balance rejected entirely', g('cash').park, N],
+    ['Offers & announcements rejected', g('offers').park, N],
+    ['Action row (Buy·Send·Receive) in the top zone', g('actions').top, N],
+    ['Action row rejected entirely', g('actions').park, N],
+    ['Hide/show balances in the top zone', g('hide').top, N],
+    ['Wallet list survived the squeeze', g('wallets').keep, N],
+    ['Asset list survived the squeeze', g('assets').keep, N],
+    ['Total balance survived the squeeze', g('total').keep, N],
+    ['One number = total in dollars', cnt('oneNumber','total_usd'), cl('oneNumber')],
+    ['One number = total in bitcoin', cnt('oneNumber','total_btc'), cl('oneNumber')],
+    ['One button = Buy', cnt('oneButton','buy'), cl('oneButton')],
+    ['List grouped by wallet', cnt('lens','wallet'), cl('lens')],
+    ['List grouped by asset', cnt('lens','asset'), cl('lens')],
+    ['Wants a wallet/asset toggle', cnt('lens','toggle'), cl('lens')],
+  ];
+  $('dqTable').innerHTML='<tr><th>Question</th><th>Count</th><th>Share</th><th>Read</th></tr>'+
+    dq.map(([q,n,d])=>{const sh=d? n/d:0;
+      return `<tr><td>${q}</td><td class="v">${n} / ${d}</td><td>${Math.round(sh*100)}%</td><td>${verdictChip(sh)}</td></tr>`;}).join('');
+
+  // closers detail
+  const cldef=[
+    ['oneNumber','One glanceable number',{total_usd:'Total in dollars',total_btc:'Total in bitcoin',cash:'Cash'}],
+    ['oneButton','One action button',{buy:'Buy',send:'Send',receive:'Receive',swap:'Swap'}],
+    ['lens','Money list grouped…',{wallet:'By wallet',asset:'By asset',toggle:'Toggle (both)'}],
+  ];
+  $('closers').innerHTML='';
+  cldef.forEach(([k,title,opts])=>{
+    const tot=cl(k);
+    const h=document.createElement('div');
+    h.innerHTML='<h2 style="margin-top:6px">'+title+'</h2>';
+    Object.entries(opts).forEach(([v,lab])=>{
+      const n=cnt(k,v);
+      const row=document.createElement('div'); row.className='row';
+      row.innerHTML=`<div class="lab">${lab}</div><div><div class="bar1" style="width:${100*n/Math.max(1,tot)}%"></div></div><div class="n">${n}</div>`;
+      h.appendChild(row);
+    });
+    $('closers').appendChild(h);
+  });
+
+  // write-ins
+  $('missing').innerHTML=rs.filter(r=>r.closers&&r.closers.missing&&r.closers.missing.trim())
+    .map(r=>`<li>"${r.closers.missing.trim().replace(/</g,'&lt;')}" <span style="color:var(--muted)">— ${r.screener?.wallets==='multi'?'multi-wallet':'single-wallet'}${r.screener?.privacy==='agree'?', privacy-focused':''}</span></li>`)
+    .join('') || '<li style="list-style:none;color:var(--muted)">None yet.</li>';
+
+  // table view
+  $('bigTable').innerHTML='<tr><th>Card</th><th>Top</th><th>Scroll</th><th>Don\'t need</th><th>Top share</th><th>Squeeze keeps</th><th>Median rank</th></tr>'+
+    perCard(rs).map(c=>`<tr><td>${c.label}</td><td>${c.top}</td><td>${c.scroll}</td><td>${c.park}</td><td>${c.n?Math.round(100*c.top/c.n):0}%</td><td>${c.keep}</td><td>${c.med??'—'}</td></tr>`).join('');
+}
+
+/* ---------- exports ---------- */
+function exportCSV(){
+  const pc=perCard(filtered());
+  const lines=['Card,Top of screen,Further down,Dont need,Squeeze keeps,Median rank'];
+  pc.forEach(c=>lines.push(`"${c.label}",${c.top},${c.scroll},${c.park},${c.keep},${c.med??''}`));
+  dl(lines.join('\n'),'cardsort-zone-counts.csv','text/csv');
+}
+function exportRaw(){ dl(JSON.stringify(raw,null,2),'cardsort-raw.json','application/json'); }
+function dl(content,name,type){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([content],{type})); a.download=name; a.click();
+}
+render();
+window.__ingest = ingest; // test hook
+</script>
+</body>
+</html>
