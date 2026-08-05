@@ -10,26 +10,51 @@ const CONFIG = {
 // heights on a 25.125-unit-wide / 402px screen). w = fraction of phone width.
 // Small pieces (w<1) pack side by side when adjacent — like a real app row.
 const IMG = {}; /*IMG_DATA*/
-const SHORT = {total:"Total balance", total_chart:"Balance chart", px_num:"BTC price",
-  px_chart:"Price chart", cash:"Cash", cash_act:"Cash actions", wallets:"My wallets",
+const SHORT = {total:"Total balance", total_chart:"Balance chart", px_num:"BTC price pill",
+  px_chart:"BTC price chart", market:"BTC/USD market row", cash:"Cash", cash_act:"Cash buttons", wallets:"My wallets",
   assets:"My assets", actions:"Buy·Send·Receive", activity:"Recent activity",
   offers:"Offers", hide:"Hide balances", notif:"Notifications", jade:"Jade status"};
+// Pile sections — order here is the order participants see them in.
+const GROUPS = [
+  {id:"balances", title:"Your money"},
+  {id:"price",    title:"Bitcoin price (3 different takes)"},
+  {id:"act",      title:"Action buttons"},
+  {id:"updates",  title:"Activity & updates"},
+  {id:"util",     title:"Small utilities"},
+];
 const CARDS = [
   // h = natural height of the designed component (Figma "01 Dashboard" / CardList)
-  {id:"total",      label:"Total balance in USD/EUR (across assets & wallets)", h:101, w:1},
-  {id:"total_chart",label:"Balance chart (my total balance, over time)",        h:106, w:1},
-  {id:"px_num",     label:"Bitcoin price (number + % change, tap for chart)",   h:34,  w:0.5},
-  {id:"px_chart",   label:"Price chart (bitcoin price, over time)",             h:260, w:1},
-  {id:"cash",    label:"Cash balance (dollars)",                 h:60,  w:1},
-  {id:"cash_act",label:"Add money / Withdraw / Buy buttons",     h:42,  w:1},
-  {id:"wallets", label:"List of my wallets",                     h:329, w:1},
-  {id:"assets",  label:"List of my assets (bitcoin, tether, …)", h:226, w:1},
-  {id:"actions", label:"Buy · Send · Receive", h:61, w:1, chips:["Buy","Send","Receive"]},
-  {id:"activity",label:"Recent activity (latest transactions)",  h:236, w:1},
-  {id:"offers",  label:"Offers & announcements",                 h:85,  w:1},
-  {id:"hide",    label:"Hide / show balances (eye)",             h:34,  w:0.25},
-  {id:"notif",   label:"Notifications",                          h:34,  w:0.25},
-  {id:"jade",    label:"Jade / hardware wallet status",          h:64,  w:1},
+  // label = short distinctive name (also used in analysis); desc = plain-language explanation shown in the pile.
+  {id:"total",      label:"Total balance (number)", group:"balances", h:101, w:1,
+   desc:"Your total worth in dollars — everything, across all wallets and assets."},
+  {id:"total_chart",label:"Total balance — chart", group:"balances", h:106, w:1,
+   desc:"How that total changed over time, as a chart."},
+  {id:"wallets",    label:"Wallet list", group:"balances", h:329, w:1,
+   desc:"Every wallet you have (Spending, Savings, Vault…) with its own balance."},
+  {id:"assets",     label:"Asset list", group:"balances", h:226, w:1,
+   desc:"The same money grouped by asset instead: bitcoin, tether, cash."},
+  {id:"cash",       label:"Cash balance row", group:"balances", h:60, w:1,
+   desc:"Just your dollar cash balance, held outside the wallets."},
+  {id:"px_num",     label:"BTC price — tiny pill", group:"price", h:34, w:0.5,
+   desc:"The bitcoin price squeezed into a small pill. Tap it to see a chart."},
+  {id:"market",     label:"BTC/USD — market row", group:"price", h:64, w:1,
+   desc:"One row with the BTC/USD price, 24h trading volume and a trend line. Tap it to expand the full chart."},
+  {id:"px_chart",   label:"BTC price — full chart card", group:"price", h:260, w:1,
+   desc:"The big version: price chart over time, timeframes, and a Buy button."},
+  {id:"actions",    label:"Buy · Send · Receive buttons", group:"act", h:61, w:1, chips:["Buy","Send","Receive"],
+   desc:"The three main bitcoin buttons."},
+  {id:"cash_act",   label:"Cash buttons", group:"act", h:42, w:1,
+   desc:"Add money, withdraw, or buy bitcoin with your cash."},
+  {id:"activity",   label:"Recent activity", group:"updates", h:236, w:1,
+   desc:"Your latest transactions."},
+  {id:"offers",     label:"Offers & announcements", group:"updates", h:85, w:1,
+   desc:"News and promos from Blockstream."},
+  {id:"notif",      label:"Notifications bell", group:"updates", h:34, w:0.25,
+   desc:"Alerts, with an unread count."},
+  {id:"hide",       label:"Hide balances (eye)", group:"util", h:34, w:0.25,
+   desc:"One tap to blur every amount on screen."},
+  {id:"jade",       label:"Jade status row", group:"util", h:64, w:1,
+   desc:"Whether your Jade hardware wallet is connected."},
 ];
 /* ---- component faces: HTML in the design system's own tokens ---- */
 const CHART_SVG = (w,h,vb)=>'<svg width="'+w+'" height="'+h+'" viewBox="0 0 360 '+vb+'" preserveAspectRatio="none" fill="none">'
@@ -57,6 +82,15 @@ const FACES = {
     +CHART_SVG(323,64,120)
     +'<div class="f-tfrow"><span class="f-tf">1D</span><span class="f-tf">1W</span><span class="f-tf on">1M</span><span class="f-tf">1Y</span><span class="f-tf">ALL</span></div>'
     +'<div class="f-cta">Buy Now</div></div>',
+  market:'<div class="f-card f-row" style="height:100%">'
+    +'<span style="position:relative;flex:none"><span class="f-coin c-b">₿</span>'
+    +'<span style="position:absolute;left:-4px;bottom:-4px;width:17px;height:17px;border-radius:50%;background:#0a0a0a;color:#fafafa;font-size:9.5px;font-weight:600;display:flex;align-items:center;justify-content:center;border:2px solid #181818">$</span></span>'
+    +'<span style="flex:1"><div class="f-name">BTC<span style="color:#a0a0a0">/USD</span></div><div class="f-sub" style="font-size:12.5px">65.2M</div></span>'
+    +'<span style="text-align:right"><div class="f-amt" style="font-size:16px">64,130.70</div>'
+    +'<div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-top:2px">'
+    +'<svg width="76" height="20" viewBox="0 0 76 20" fill="none" style="display:block">'
+    +'<polyline points="1,17 4,13 7,15 10,10 13,12 16,8 19,10 22,6 25,9 28,5 31,8 34,4 37,7 40,5 43,8 46,4 49,7 52,5 55,8 58,5 61,7 64,4 67,7 70,6 73,8 75,7" stroke="#00c60d" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/></svg>'
+    +'<span class="f-pos" style="font-size:13px;font-weight:600">+1.00%</span></div></span></div>',
   cash:frow('$','c-g','Cash','Global · outside your wallets','4,520.00 USD'),
   cash_act:'<div class="f-btnrow"><span class="f-btn">＋ Add Money</span><span class="f-btn">↑ Withdraw</span><span class="f-btn">₿ Buy Bitcoin</span></div>',
   wallets:
@@ -83,4 +117,4 @@ const FACES = {
   notif:'<div style="display:flex;justify-content:center;align-items:center;height:100%"><span class="f-pill" style="font-size:12px;padding:0 10px">🔔 <span style="color:#ff7556;font-size:10px">●2</span></span></div>',
   jade:frow('🔒','c-g','Jade','Hardware wallet · Connected','<span class="f-pos" style="font-size:16px">✓</span>'),
 };
-export { CONFIG, CARDS, FACES, SHORT };
+export { CONFIG, CARDS, FACES, SHORT, GROUPS };

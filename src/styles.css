@@ -33,7 +33,7 @@
      everything inside at native pixel size, and the whole frame transform-scaled
      to fit the viewport. Proportions are physically correct at every window size. */
   .scalebox{position:relative;}
-  .pile{display:flex; flex-wrap:wrap; gap:10px; align-content:flex-start;}
+  .pile{display:flex; flex-wrap:wrap; gap:10px; align-content:flex-start; align-items:flex-start;}
   .parkzone{margin-top:16px; background:var(--park); border:1.5px dashed var(--parkline); border-radius:14px;
     padding:12px; min-height:84px;}
   .parkzone .zt{font-weight:650; font-size:14px; color:#a04545; margin-bottom:8px;}
@@ -108,6 +108,34 @@
     padding:0 26px 10px; font-size:15px; font-weight:500; color:#fafafa; flex:none;
     font-family:Inter,-apple-system,sans-serif;}
   .statusbar .sright{letter-spacing:2px; font-size:13px;}
+  /* floating "remove" drop target — only visible while a drag is in progress */
+  .parkdock{position:fixed; left:12px; right:12px; bottom:74px; z-index:60; display:none;
+    align-items:center; justify-content:center; gap:8px; height:56px;
+    background:#fff5f5f2; border:2.5px dashed #d78787; border-radius:14px;
+    color:#a04545; font-weight:750; font-size:14.5px; letter-spacing:.3px;
+    backdrop-filter:blur(3px); box-shadow:0 -4px 18px rgba(0,0,0,.08);}
+  .parkdock.on{display:flex;}
+  .parkdock.zone-hover{background:#ffe3e3; border-color:#c05050; border-style:solid;
+    outline:none; transform:scale(1.02);}
+  /* drag affordances */
+  .card:active{cursor:grabbing;}
+  .card.instack .grip{position:absolute; right:5px; top:50%; transform:translateY(-50%);
+    color:#7d8b98; background:rgba(10,13,16,.65); border:1px solid #2b333b; border-radius:6px;
+    padding:3px 4px; font-size:11px; line-height:1; pointer-events:none;}
+  .card.instack:hover{outline:1.5px solid rgba(0,188,255,.65); outline-offset:-1.5px;}
+  .card.instack:hover .grip{color:#fafafa; border-color:#00bcff;}
+  .cap .drg{float:right; font-size:9.5px; font-weight:600; color:#8b98a5; border:1px solid #2b333b;
+    border-radius:99px; padding:2px 7px; margin-left:6px; letter-spacing:.3px; text-transform:uppercase;}
+  .reorderhint{width:100%; flex:none; font-size:12.5px; color:var(--ink2); text-align:center; margin-top:10px;}
+  .reorderhint b{color:var(--ink);}
+  /* pile grouping + captions */
+  .pgh{width:100%; flex:none; font-size:13px; font-weight:750; color:var(--ink2);
+    text-transform:uppercase; letter-spacing:.5px; margin:16px 0 2px;}
+  .pgh:first-child{margin-top:0;}
+  .facebox{overflow:hidden; border-radius:6px; pointer-events:none;}
+  .cap{padding:7px 5px 4px; pointer-events:none;}
+  .cap .nm{display:block; font-size:12.5px; font-weight:650; color:#fafafa; line-height:1.25;}
+  .cap .ds{display:block; font-size:11px; font-weight:400; color:#a0a0a0; line-height:1.35; margin-top:2px;}
   .card.real .tag{position:absolute; bottom:3px; right:5px; background:rgba(10,13,16,.72);
     color:#a7b3bf; font-size:9.5px; font-weight:600; padding:2px 6px; border-radius:5px; pointer-events:none;}
   .card.real.notag .tag{display:none;} /* small pieces self-describe (chip/button imagery) */
@@ -124,6 +152,6 @@
   code{background:#f1f0ec; padding:2px 6px; border-radius:6px; font-size:14px;}
   @media (max-width:760px){
     .sortwrap{flex-direction:column-reverse;}
-    .phonecol{width:100%; position:static; display:flex; justify-content:center;}
+    .phonecol{width:100%; position:static; display:flex; justify-content:center; flex-wrap:wrap;}
     .card.inpile{width:calc(50% - 5px);}
   }

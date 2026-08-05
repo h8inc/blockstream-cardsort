@@ -142,21 +142,23 @@
 
 <script>
 /* Card set — keep IDENTICAL to index.html (workbook row order) */
+// Labels + order MUST match src/data.js (grouped, distinctive names).
 const CARDS = [
-  {id:"total",      label:"Total balance (USD/EUR)"},
-  {id:"total_chart",label:"Balance chart (total over time)"},
-  {id:"px_num",     label:"Bitcoin price (number + %)"},
-  {id:"px_chart",   label:"Price chart (BTC over time)"},
-  {id:"cash",    label:"Cash balance"},
-  {id:"cash_act",label:"Add/withdraw cash buttons"},
-  {id:"wallets", label:"List of my wallets"},
-  {id:"assets",  label:"List of my assets"},
-  {id:"actions", label:"Buy·Send·Receive row"},
-  {id:"activity",label:"Recent activity"},
-  {id:"offers",  label:"Offers & announcements"},
-  {id:"hide",    label:"Hide/show balances"},
-  {id:"notif",   label:"Notifications"},
-  {id:"jade",    label:"Jade/hardware status"},
+  {id:"total",      label:"Money: Total balance (number)"},
+  {id:"total_chart",label:"Money: Total balance — chart"},
+  {id:"wallets",    label:"Money: Wallet list"},
+  {id:"assets",     label:"Money: Asset list"},
+  {id:"cash",       label:"Money: Cash balance row"},
+  {id:"px_num",     label:"Price: BTC price — tiny pill"},
+  {id:"market",     label:"Price: BTC/USD — market row"},
+  {id:"px_chart",   label:"Price: BTC price — full chart card"},
+  {id:"actions",    label:"Actions: Buy · Send · Receive"},
+  {id:"cash_act",   label:"Actions: Cash buttons"},
+  {id:"activity",   label:"Updates: Recent activity"},
+  {id:"offers",     label:"Updates: Offers & announcements"},
+  {id:"notif",      label:"Updates: Notifications bell"},
+  {id:"hide",       label:"Utility: Hide balances (eye)"},
+  {id:"jade",       label:"Utility: Jade status row"},
 ];
 let raw=[];         // all loaded responses
 let seg='all';      // segment filter
@@ -317,15 +319,21 @@ function render(){
     return [n,d];
   }
   const [tbw,tbwD]=beats('total','wallets');
+  const [mvp,mvpD]=beats('market','px_num');   // market row vs tiny pill
+  const [mvc,mvcD]=beats('market','px_chart'); // market row vs full chart
   const cl=k=>rs.filter(r=>r.closers&&r.closers[k]).length||1;
   const cnt=(k,v)=>rs.filter(r=>r.closers&&r.closers[k]===v).length;
   const dq=[
     ['Total balance beats wallet list (higher in the stack)', tbw, tbwD],
-    ['Bitcoin price number on the first screen (top zone)', g('px_num').top, N],
-    ['BTC price chart on the first screen (top zone)', g('px_chart').top, N],
+    ['BTC price — tiny pill on the first screen (top zone)', g('px_num').top, N],
+    ['BTC/USD — market row on the first screen (top zone)', g('market').top, N],
+    ['BTC price — full chart card on the first screen (top zone)', g('px_chart').top, N],
+    ['Market row ranked above tiny pill (when both kept)', mvp, mvpD],
+    ['Market row ranked above full chart card (when both kept)', mvc, mvcD],
+    ['BTC/USD — market row rejected entirely', g('market').park, N],
     ['Balance chart on the first screen (top zone)', g('total_chart').top, N],
     ['Balance chart rejected entirely', g('total_chart').park, N],
-    ['Price number rejected entirely ("don\'t need")', g('px_num').park, N],
+    ['BTC price — tiny pill rejected entirely ("don\'t need")', g('px_num').park, N],
     ['Cash balance on the first screen (top zone)', g('cash').top, N],
     ['Cash balance rejected entirely', g('cash').park, N],
     ['Offers & announcements rejected', g('offers').park, N],

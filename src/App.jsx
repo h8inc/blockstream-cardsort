@@ -175,6 +175,9 @@ export default function App() {
               </div>
             </div>
             <div className="phonecol">
+              <div className="reorderhint" id="reorderHint" style={{ display: 'none' }}>
+                ⠿ <b>Grab any piece</b> in the phone and drag it up or down to change the order
+              </div>
               <div className="scalebox" id="scalebox">
                 <div className="phone" id="phoneEl">
                   <div className="screen">
@@ -186,6 +189,7 @@ export default function App() {
               </div>
             </div>
           </div>
+          <div className="parkdock" id="parkDock">🗑 Drop here — DON'T NEED THIS</div>
           <div className="bar">
             <span className="hint" id="sortHint">
               {board.placed < board.total ? `Place all pieces to continue (${board.total - board.placed} left)`
