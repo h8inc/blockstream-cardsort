@@ -162,21 +162,22 @@ export default function App() {
       {step === 'sort' && (
         <div className="step active" id="s-sort" ref={sortRef}>
           <h1>Build your first screen</h1>
-          <p>Imagine opening the app fresh tomorrow. <strong>Drag every piece</strong> either into the phone — stacked top to bottom in your ideal order — or into "Don't need this." (You can also <strong>tap</strong> a piece to add it to the phone, then drag to reorder.) Small pieces sit <strong>side by side</strong> automatically, just like a real app. The phone is real-size: what fits in the frame is what you'd see <strong>without scrolling</strong> — the phone scrolls inside for everything below.</p>
+          <p>Imagine opening the app fresh tomorrow. Every piece needs a decision: <strong>tap or drag it into the phone</strong> (stacked in your ideal order), or send it to <strong>"Not on my first screen"</strong> — tap the <strong>✕</strong> on the piece, or drag it to the red zone by the phone. Rejecting a piece doesn't delete it from the app; it just stays off your first screen. Small pieces sit <strong>side by side</strong> automatically, and the phone scrolls inside — what fits in the frame is what you'd see <strong>without scrolling</strong>.</p>
           <div className="sortwrap">
             <div className="pilecol">
               <h2>The pieces <span className="counts" id="pileCount">
                 {board.placed < board.total ? `· ${board.total - board.placed} left to place` : '· all placed ✓'}
               </span></h2>
               <div className="pile" id="pile"></div>
-              <div className="parkzone" id="park">
-                <div className="zt">DON'T NEED THIS — drag here to remove</div>
-                <div className="cards" id="parkCards"></div>
-              </div>
             </div>
             <div className="phonecol">
               <div className="reorderhint" id="reorderHint" style={{ display: 'none' }}>
                 ⠿ <b>Grab any piece</b> in the phone and drag it up or down to change the order
+              </div>
+              <div className="parkzone" id="park">
+                <div className="zt">🚫 NOT ON MY FIRST SCREEN</div>
+                <div className="zs">drop pieces here, or tap the <b>✕</b> on a piece — it can still live deeper in the app</div>
+                <div className="cards" id="parkCards"></div>
               </div>
               <div className="scalebox" id="scalebox">
                 <div className="phone" id="phoneEl">
@@ -189,7 +190,7 @@ export default function App() {
               </div>
             </div>
           </div>
-          <div className="parkdock" id="parkDock">🗑 Drop here — DON'T NEED THIS</div>
+          <div className="parkdock" id="parkDock">🚫 Drop here — NOT ON MY FIRST SCREEN</div>
           <div className="bar">
             <span className="hint" id="sortHint">
               {board.placed < board.total ? `Place all pieces to continue (${board.total - board.placed} left)`

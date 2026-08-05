@@ -53,6 +53,15 @@ function cardEl(c, mode) {
       cap.querySelector('.nm').textContent = c.label;
       cap.querySelector('.ds').textContent = c.desc || '';
       el.appendChild(cap);
+      // One-click rejection — the drag journey to the zone was too easy to miss.
+      const nope = document.createElement('button');
+      nope.className = 'nope';
+      nope.type = 'button';
+      nope.textContent = '✕';
+      nope.title = "Don't need — not on my first screen";
+      nope.setAttribute('aria-label', "Don't need — not on my first screen");
+      nope.addEventListener('click', ev => { ev.stopPropagation(); placeInPark(c.id); });
+      el.appendChild(nope);
     } else {
       el.appendChild(holder);
       const tag = document.createElement('span');
@@ -95,7 +104,7 @@ export function fitPhone() {
   if (!$root) return;
   const ring = 10;
   const availW = Math.min(innerWidth - (innerWidth > 760 ? 560 : 32), 500);
-  const availH = innerHeight - 140;
+  const availH = innerHeight - 250; // leave room for the always-visible reject zone above the phone
   const s = Math.max(0.35, Math.min(1, availW / (SCREEN_W + 2 * ring), availH / (SCREEN_H + 2 * ring)));
   const ph = $('phoneEl'), box = $('scalebox');
   if (!ph) return;
@@ -227,6 +236,7 @@ function updateDropUI() {
   if (t === 'stack') showDropline(drag.y, drag.x);
 }
 function onDown(e) {
+  if (e.target.closest && e.target.closest('.nope')) return; // ✕ button handles its own click
   const card = e.target.closest('.card'); if (!card || !$root.contains(card)) return;
   e.preventDefault();
   const r = card.getBoundingClientRect();
