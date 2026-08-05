@@ -148,7 +148,7 @@ const CARDS = [
   {id:"total_chart",label:"Money: Total balance — chart"},
   {id:"wallets",    label:"Money: Wallet list"},
   {id:"assets",     label:"Money: Asset list"},
-  {id:"cash",       label:"Money: Cash balance row"},
+  {id:"cash",       label:"Money: Cash — as its own row"},
   {id:"px_num",     label:"Price: BTC price — tiny pill"},
   {id:"market",     label:"Price: BTC/USD — market row"},
   {id:"px_chart",   label:"Price: BTC price — full chart card"},
@@ -343,8 +343,8 @@ function render(){
     ['Balance chart on the first screen (top zone)', g('total_chart').top, N],
     ['Balance chart rejected entirely', g('total_chart').park, N],
     ['BTC price — tiny pill rejected entirely ("don\'t need")', g('px_num').park, N],
-    ['Cash balance on the first screen (top zone)', g('cash').top, N],
-    ['Cash balance rejected entirely', g('cash').park, N],
+    ['Cash — own row on the first screen (top zone)', g('cash').top, N],
+    ['Cash — own row rejected entirely', g('cash').park, N],
     ['Offers & announcements rejected', g('offers').park, N],
     ['Action row (Buy·Send·Receive) in the top zone', g('actions').top, N],
     ['Action row rejected entirely', g('actions').park, N],
@@ -358,6 +358,10 @@ function render(){
     ['List grouped by wallet', cnt('lens','wallet'), cl('lens')],
     ['List grouped by asset', cnt('lens','asset'), cl('lens')],
     ['Wants a wallet/asset toggle', cnt('lens','toggle'), cl('lens')],
+    ['Cash belongs: on its own row', cnt('cashHome','own_row'), cl('cashHome')],
+    ['Cash belongs: inside the asset list', cnt('cashHome','in_assets'), cl('cashHome')],
+    ['Cash belongs: in the wallet list, as a cash account', cnt('cashHome','in_wallets'), cl('cashHome')],
+    ['Cash belongs: not on the first screen', cnt('cashHome','not_first'), cl('cashHome')],
   ];
   $('dqTable').innerHTML='<tr><th>Question</th><th>Count</th><th>Share</th><th>Read</th></tr>'+
     dq.map(([q,n,d])=>{const sh=d? n/d:0;

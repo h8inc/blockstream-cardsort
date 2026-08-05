@@ -26,6 +26,7 @@ export default function App() {
   const [oneNumber, setOneNumber] = useState(null);
   const [oneButton, setOneButton] = useState(null);
   const [lens, setLens] = useState(null);
+  const [cashHome, setCashHome] = useState(null);
   const [missing, setMissing] = useState('');
   const [submitState, setSubmitState] = useState('idle'); // idle|busy|sent|noendpoint|failed
   const sortRef = useRef(null);
@@ -43,7 +44,7 @@ export default function App() {
 
   const screenerDone = freq && wallets && privacy;
   const sortDone = board.placed === board.total && board.inStack > 0;
-  const closersDone = oneNumber && oneButton && lens;
+  const closersDone = oneNumber && oneButton && lens && cashHome;
 
   function finishScreener() {
     if (freq === 'rarely') {
@@ -72,7 +73,7 @@ export default function App() {
       aboveFold: aboveFold.length ? aboveFold : computeAboveFold(),
       parked: boardState.parked,
       squeezeKeep: keep,
-      closers: { oneNumber, oneButton, lens, missing },
+      closers: { oneNumber, oneButton, lens, cashHome, missing },
       events: boardState.events.slice(0, 200),
       meta: { ua: navigator.userAgent, vw: innerWidth, vh: innerHeight,
               screenW: SCREEN_W, screenH: SCREEN_H, foldPx: FOLD_PX },
@@ -246,6 +247,13 @@ export default function App() {
             <Radio name="lens" value="wallet" sel={lens} set={setLens}>By wallet (Phone, Jade, multisig…)</Radio>
             <Radio name="lens" value="asset" sel={lens} set={setLens}>By asset (bitcoin, tether, cash…)</Radio>
             <Radio name="lens" value="toggle" sel={lens} set={setLens}>Both — let me toggle between them</Radio>
+          </div>
+          <div className="qbox">
+            <div className="qt">Your cash (dollars) isn't held in any wallet. Where does it belong?</div>
+            <Radio name="cashHome" value="own_row" sel={cashHome} set={setCashHome}>On its own row on the first screen</Radio>
+            <Radio name="cashHome" value="in_assets" sel={cashHome} set={setCashHome}>Inside the asset list, next to bitcoin and tether</Radio>
+            <Radio name="cashHome" value="in_wallets" sel={cashHome} set={setCashHome}>In the wallet list, as its own cash account</Radio>
+            <Radio name="cashHome" value="not_first" sel={cashHome} set={setCashHome}>Not on the first screen at all</Radio>
           </div>
           <div className="qbox">
             <div className="qt">Anything missing from the pieces you sorted? (optional)</div>
