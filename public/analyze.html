@@ -185,15 +185,24 @@ function parseAny(text){
     return text.split('\n').map(l=>{try{return JSON.parse(l)}catch(_){return null}}).filter(Boolean);
   }
 }
-async function fetchUrl(){
-  const u=$('url').value.trim(); if(!u) return;
+// When this page is served from the study site itself, its own endpoint is the default.
+const OWN_ENDPOINT = /^https?:$/.test(location.protocol)
+  ? location.origin + '/api/collect?token=blockstream-test' : '';
+async function fetchUrl(quiet){
+  const u=$('url').value.trim() || OWN_ENDPOINT;
+  if(!u){ alert('Enter your collection endpoint URL first.'); return; }
+  $('url').value=u;
   try{
     const res=await fetch(u);
+    if(!res.ok){ alert('Fetch failed: HTTP '+res.status+(res.status===401?' — wrong token?':'')); return; }
     const t=await res.text();
-    const n=ingest(parseAny(t));
-    alert(n+' new responses loaded ('+raw.length+' total)');
-  }catch(e){ alert('Fetch failed: '+e.message+'\nTip: the Apps Script deployment must be set to "Anyone" access.'); }
+    const all=parseAny(t), n=ingest(all);
+    if(!quiet) alert(all.length===0
+      ? 'Connected ✓ — but the store has no responses yet. Complete a run on the live site and fetch again.'
+      : n+' new responses loaded ('+raw.length+' total)');
+  }catch(e){ if(!quiet) alert('Fetch failed: '+e.message+'\nTip: the Apps Script deployment must be set to "Anyone" access.'); }
 }
+if(OWN_ENDPOINT){ document.getElementById('url').value=OWN_ENDPOINT; fetchUrl(true); }
 async function loadFiles(files){
   let n=0;
   for(const f of files){ n+=ingest(parseAny(await f.text())); }
