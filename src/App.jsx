@@ -10,7 +10,7 @@ function Radio({ name, value, sel, set, children }) {
   return (
     <label className={'opt' + (sel === value ? ' sel' : '')}>
       <input type="radio" name={name} checked={sel === value} onChange={() => set(value)} value={value} />
-      {children}
+      <span className="optlab">{children}</span>
     </label>
   );
 }
@@ -22,9 +22,7 @@ export default function App() {
   const [privacy, setPrivacy] = useState(null);
   const [board, setBoard] = useState({ placed: 0, total: CARDS.length, inStack: 0 });
   const [aboveFold, setAboveFold] = useState([]);
-  const [keep, setKeep] = useState([]);
   const [oneNumber, setOneNumber] = useState(null);
-  const [oneButton, setOneButton] = useState(null);
   const [lens, setLens] = useState(null);
   const [cashHome, setCashHome] = useState(null);
   const [missing, setMissing] = useState('');
@@ -44,7 +42,7 @@ export default function App() {
 
   const screenerDone = freq && wallets && privacy;
   const sortDone = board.placed === board.total && board.inStack > 0;
-  const closersDone = oneNumber && oneButton && lens && cashHome;
+  const closersDone = oneNumber && lens && cashHome;
 
   function finishScreener() {
     if (freq === 'rarely') {
@@ -52,14 +50,11 @@ export default function App() {
       setStep('out');
     } else setStep('sort');
   }
-  function startSqueeze() {
-    const above = measureAboveFold();
-    setAboveFold(above);
-    setKeep(above.slice(0, 4));
-    setStep('squeeze');
-  }
-  function toggleKeep(id) {
-    setKeep(k => k.includes(id) ? k.filter(x => x !== id) : (k.length < 4 ? [...k, id] : k));
+  // Measure what actually fits above the fold before leaving the board — this is
+  // the size-aware prioritisation signal that replaced the old "pick 4" squeeze.
+  function finishSort() {
+    setAboveFold(measureAboveFold());
+    setStep('closers');
   }
   function buildPayload(screenedOut = false) {
     const p = {
@@ -72,8 +67,7 @@ export default function App() {
       stackOrder: boardState.stackOrder,
       aboveFold: aboveFold.length ? aboveFold : computeAboveFold(),
       parked: boardState.parked,
-      squeezeKeep: keep,
-      closers: { oneNumber, oneButton, lens, cashHome, missing },
+      closers: { oneNumber, lens, cashHome, missing },
       events: boardState.events.slice(0, 200),
       meta: { ua: navigator.userAgent, vw: innerWidth, vh: innerHeight,
               screenW: SCREEN_W, screenH: SCREEN_H, foldPx: FOLD_PX },
@@ -198,30 +192,7 @@ export default function App() {
                 : board.inStack === 0 ? 'Your phone is empty — put at least one piece in it'
                 : 'Nice. Continue when it feels right.'}
             </span>
-            <button className="btn" id="sortNext" disabled={!sortDone} onClick={startSqueeze}>Continue</button>
-          </div>
-        </div>
-      )}
-
-      {step === 'squeeze' && (
-        <div className="step active" id="s-squeeze">
-          <h1>One last squeeze</h1>
-          <p>Phone screens are cruel — realistically only <strong>4 pieces</strong> fit on screen before you scroll. From everything you kept, pick the <strong>4 that must stay visible</strong> the moment the app opens.</p>
-          <div className="qbox sq" id="sqList">
-            {boardState.stackOrder.map(id => {
-              const c = CARDS.find(x => x.id === id);
-              const on = keep.includes(id);
-              return (
-                <label key={id} className={'opt' + (on ? ' sel' : '')}>
-                  <input type="checkbox" checked={on} disabled={!on && keep.length >= 4} onChange={() => toggleKeep(id)} value={id} />
-                  {c.label}
-                </label>
-              );
-            })}
-          </div>
-          <div className="bar">
-            <span className="hint">Selected: <span className="sqcount" id="sqCount">{keep.length}</span> / 4</span>
-            <button className="btn" id="sqNext" disabled={keep.length !== 4} onClick={() => setStep('closers')}>Continue</button>
+            <button className="btn" id="sortNext" disabled={!sortDone} onClick={finishSort}>Continue</button>
           </div>
         </div>
       )}
@@ -230,17 +201,22 @@ export default function App() {
         <div className="step active" id="s-closers">
           <h1>Almost done</h1>
           <div className="qbox">
-            <div className="qt">The very top of the screen fits <strong>one glanceable number</strong>. Which one?</div>
-            <Radio name="oneNumber" value="total_usd" sel={oneNumber} set={setOneNumber}>My total, in dollars</Radio>
-            <Radio name="oneNumber" value="total_btc" sel={oneNumber} set={setOneNumber}>My total, in bitcoin</Radio>
-            <Radio name="oneNumber" value="cash" sel={oneNumber} set={setOneNumber}>My cash balance</Radio>
-          </div>
-          <div className="qbox">
-            <div className="qt">Only <strong>one action button</strong> fits next to it. Which one?</div>
-            <Radio name="oneButton" value="buy" sel={oneButton} set={setOneButton}>Buy</Radio>
-            <Radio name="oneButton" value="send" sel={oneButton} set={setOneButton}>Send</Radio>
-            <Radio name="oneButton" value="receive" sel={oneButton} set={setOneButton}>Receive</Radio>
-            <Radio name="oneButton" value="swap" sel={oneButton} set={setOneButton}>Swap</Radio>
+            <div className="qt">The moment you open the app, the very top has room for <strong>one big number</strong>.</div>
+            <p style={{ fontSize: 14, margin: '0 0 10px' }}>
+              Your <strong>total</strong> means everything you hold added up — bitcoin, tether, <em>and</em> the dollars in your cash account. Which number belongs at the top?
+            </p>
+            <Radio name="oneNumber" value="total_usd" sel={oneNumber} set={setOneNumber}>
+              My total in dollars — e.g. <strong>174,560 USD</strong>
+            </Radio>
+            <Radio name="oneNumber" value="total_btc" sel={oneNumber} set={setOneNumber}>
+              My total in bitcoin — e.g. <strong>1.4534 BTC</strong> (cash and tether converted at today's price)
+            </Radio>
+            <Radio name="oneNumber" value="btc_only" sel={oneNumber} set={setOneNumber}>
+              Only my bitcoin — e.g. <strong>1.4070 BTC</strong> (cash and tether not counted)
+            </Radio>
+            <Radio name="oneNumber" value="none" sel={oneNumber} set={setOneNumber}>
+              No big number — take me straight to my wallets or assets
+            </Radio>
           </div>
           <div className="qbox">
             <div className="qt">Your money, listed on the first screen — grouped how?</div>

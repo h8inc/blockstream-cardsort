@@ -9,7 +9,7 @@ const DEFAULT_TOKEN = 'blockstream-test';
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'Content-Type',
-  'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+  'Access-Control-Allow-Methods': 'GET,POST,DELETE,OPTIONS',
 };
 
 export default async (req) => {
@@ -32,6 +32,21 @@ export default async (req) => {
     const existing = await store.get(key);
     if (!existing) await store.set(key, body);   // de-dupe by id
     return Response.json({ ok: true }, { headers: CORS });
+  }
+
+  // DELETE /api/collect?token=...&confirm=DELETE-ALL  -> wipes every stored response.
+  // Token-guarded and deliberately awkward: this is not reversible.
+  if (req.method === 'DELETE') {
+    const url = new URL(req.url);
+    if (url.searchParams.get('token') !== (process.env.COLLECT_TOKEN || DEFAULT_TOKEN)) {
+      return Response.json({ error: 'unauthorized' }, { status: 401, headers: CORS });
+    }
+    if (url.searchParams.get('confirm') !== 'DELETE-ALL') {
+      return Response.json({ error: 'add &confirm=DELETE-ALL' }, { status: 400, headers: CORS });
+    }
+    const { blobs } = await store.list({ prefix: 'r/' });
+    for (const b of blobs) await store.delete(b.key);
+    return Response.json({ ok: true, deleted: blobs.length }, { headers: CORS });
   }
 
   if (req.method === 'GET') {
