@@ -158,7 +158,10 @@ const CARDS = [
 ];
 let raw=[];         // all loaded responses
 let seg='all';      // segment filter
-const SEGS=[['all','All'],['multi','Multi-wallet'],['one','Single-wallet'],['privacy','Privacy-focused']];
+const SEGS=[['all','All'],['one','1 wallet'],['two','2 wallets'],['many','3+ wallets'],['multi','2 or more'],['privacy','Privacy-focused']];
+// 'multi' was the pre-2026-08-06 value for "two or more"; treat it as 2+ so old exports still segment.
+const isMulti=r=>['two','many','multi'].includes(r.screener&&r.screener.wallets);
+const walletLabel=r=>({one:'1 wallet',two:'2 wallets',many:'3+ wallets',multi:'2+ wallets'})[r.screener&&r.screener.wallets]||'wallets n/a';
 
 const $=id=>document.getElementById(id);
 function label(id){const c=CARDS.find(c=>c.id===id); return c?c.label:id;}
@@ -213,8 +216,10 @@ function oneZone(r){
 }
 function inSeg(r){
   if(seg==='all') return true;
-  if(seg==='multi') return r.screener && r.screener.wallets==='multi';
+  if(seg==='multi') return isMulti(r);
   if(seg==='one') return r.screener && r.screener.wallets==='one';
+  if(seg==='two') return r.screener && r.screener.wallets==='two';
+  if(seg==='many') return r.screener && r.screener.wallets==='many';
   if(seg==='privacy') return r.screener && r.screener.privacy==='agree';
   return true;
 }
@@ -276,7 +281,8 @@ function render(){
     [rs.length,'responses in view'],
     [raw.length,'loaded (incl. filtered/screened)'],
     [durs.length? Math.round(median(durs))+'s':'—','median duration'],
-    [rs.filter(r=>r.screener&&r.screener.wallets==='multi').length,'multi-wallet'],
+    [rs.filter(r=>r.screener&&r.screener.wallets==='two').length,'with exactly 2 wallets'],
+    [rs.filter(r=>r.screener&&r.screener.wallets==='many').length,'with 3+ wallets'],
     [rs.filter(r=>r.screener&&r.screener.privacy==='agree').length,'privacy-focused'],
   ].map(([v,l])=>`<div class="tile"><div class="v">${v}</div><div class="l">${l}</div></div>`).join('');
 
@@ -368,7 +374,7 @@ function render(){
 
   // write-ins
   $('missing').innerHTML=rs.filter(r=>r.closers&&r.closers.missing&&r.closers.missing.trim())
-    .map(r=>`<li>"${r.closers.missing.trim().replace(/</g,'&lt;')}" <span style="color:var(--muted)">— ${r.screener?.wallets==='multi'?'multi-wallet':'single-wallet'}${r.screener?.privacy==='agree'?', privacy-focused':''}</span></li>`)
+    .map(r=>`<li>"${r.closers.missing.trim().replace(/</g,'&lt;')}" <span style="color:var(--muted)">— ${walletLabel(r)}${r.screener?.privacy==='agree'?', privacy-focused':''}</span></li>`)
     .join('') || '<li style="list-style:none;color:var(--muted)">None yet.</li>';
 
   // table view

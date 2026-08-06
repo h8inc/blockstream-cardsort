@@ -142,7 +142,8 @@ export default function App() {
           <div className="qbox">
             <div className="qt">How many wallets do you have set up in the app?</div>
             <Radio name="wallets" value="one" sel={wallets} set={setWallets}>One</Radio>
-            <Radio name="wallets" value="multi" sel={wallets} set={setWallets}>Two or more</Radio>
+            <Radio name="wallets" value="two" sel={wallets} set={setWallets}>Two</Radio>
+            <Radio name="wallets" value="many" sel={wallets} set={setWallets}>More than two</Radio>
           </div>
           <div className="qbox">
             <div className="qt">"I go out of my way to protect my financial privacy."</div>
