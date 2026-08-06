@@ -121,11 +121,42 @@ export default function App() {
   return (
     <>
       {step === 'intro' && (
-        <div className="step active" id="s-intro">
-          <h1>Design your ideal first screen</h1>
-          <p>We're rethinking the first screen of the Blockstream app and want it built around how <strong>you</strong> think, not how we do. This takes about <strong>5 minutes</strong>: you'll answer 3 quick questions, then arrange the pieces of the app into your ideal first screen.</p>
-          <p>Responses are anonymous and used only to inform the app's design.</p>
-          <button className="btn" onClick={() => setStep('screener')}>Start</button>
+        <div className="step active intro" id="s-intro">
+          <div className="kicker">Blockstream app · design study</div>
+          <h1>What should the first screen of your <span className="hl">self-custody bank</span> look like?</h1>
+          <p className="lede">
+            For years the app has been a place to hold bitcoin. We want it to become the place you run your
+            money from — without ever handing over your keys.
+          </p>
+
+          <div className="shift">
+            <div className="shift-card from">
+              <div className="shift-lab">Today</div>
+              <div className="shift-t">A wallet app</div>
+              <div className="shift-d">You open it to send, receive and check one wallet at a time.</div>
+            </div>
+            <div className="shift-arrow" aria-hidden="true">→</div>
+            <div className="shift-card to">
+              <div className="shift-lab">Where we're going</div>
+              <div className="shift-t">A financial OS</div>
+              <div className="shift-d">Everything you hold — across your wallets, across chains and currencies — in one place. Still yours. Still self-custodied.</div>
+            </div>
+          </div>
+
+          <p>
+            That only works if the <strong>first screen</strong> is right. It's the one screen you'll see every
+            single time you open the app, and there's room for very little on it. So we'd rather you designed it
+            than us.
+          </p>
+
+          <div className="steps3">
+            <div className="s3"><span className="n">1</span> Three quick questions about how you use the app</div>
+            <div className="s3"><span className="n">2</span> Build your ideal first screen from the real pieces</div>
+            <div className="s3"><span className="n">3</span> Three last calls on what earns the top spot</div>
+          </div>
+
+          <button className="btn" onClick={() => setStep('screener')}>Start — about 4 minutes</button>
+          <p className="fineprint">Anonymous. Used only to shape the next version of the app.</p>
         </div>
       )}
 
