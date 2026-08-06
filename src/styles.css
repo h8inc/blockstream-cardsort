@@ -137,6 +137,7 @@
   .shift-d{font-size:14px; line-height:1.45; color:var(--ink2);}
   .shift-card.to .shift-d{color:#a0a0a0;}
   .shift-arrow{align-self:center; font-size:22px; color:var(--muted); flex:none;}
+  .punch{font-size:19px; font-weight:650; color:var(--ink); margin:22px 0 4px; max-width:none;}
   .steps3{display:flex; flex-direction:column; gap:8px; margin:18px 0 22px; max-width:60ch;}
   .s3{display:flex; align-items:center; gap:11px; font-size:15px; color:var(--ink2);}
   .s3 .n{flex:none; width:24px; height:24px; border-radius:50%; background:var(--ink); color:#fff;

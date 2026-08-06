@@ -143,11 +143,7 @@ export default function App() {
             </div>
           </div>
 
-          <p>
-            That only works if the <strong>first screen</strong> is right. It's the one screen you'll see every
-            single time you open the app, and there's room for very little on it. So we'd rather you designed it
-            than us.
-          </p>
+          <p className="punch">One screen. Room for very little. You decide what earns a place.</p>
 
           <div className="steps3">
             <div className="s3"><span className="n">1</span> Three quick questions about how you use the app</div>
