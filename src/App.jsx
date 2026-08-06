@@ -15,10 +15,24 @@ function Radio({ name, value, sel, set, children }) {
   );
 }
 
+function Check({ name, value, sel, set, children }) {
+  const on = sel.includes(value);
+  return (
+    <label className={'opt' + (on ? ' sel' : '')}>
+      <input type="checkbox" name={name} checked={on} value={value}
+        onChange={() => set(on ? sel.filter(v => v !== value) : [...sel, value])} />
+      <span className="optlab">{children}</span>
+    </label>
+  );
+}
+
 export default function App() {
   const [step, setStep] = useState('intro');
   const [freq, setFreq] = useState(null);
   const [wallets, setWallets] = useState(null);
+  const [walletsAll, setWalletsAll] = useState(null);
+  const [heldWhere, setHeldWhere] = useState([]);
+  const [connect, setConnect] = useState(null);
   const [privacy, setPrivacy] = useState(null);
   const [board, setBoard] = useState({ placed: 0, total: CARDS.length, inStack: 0 });
   const [aboveFold, setAboveFold] = useState([]);
@@ -40,7 +54,7 @@ export default function App() {
 
   useEffect(() => { window.scrollTo(0, 0); }, [step]);
 
-  const screenerDone = freq && wallets && privacy;
+  const screenerDone = freq && wallets && walletsAll && heldWhere.length && connect && privacy;
   const sortDone = board.placed === board.total && board.inStack > 0;
   const closersDone = oneNumber && lens && cashHome;
 
@@ -63,7 +77,7 @@ export default function App() {
       submittedAt: new Date().toISOString(),
       durationSec: Math.round((Date.now() - startRef.current) / 1000),
       screenedOut,
-      screener: { freq, wallets, privacy },
+      screener: { freq, wallets, walletsAll, heldWhere, connect, privacy },
       stackOrder: boardState.stackOrder,
       aboveFold: aboveFold.length ? aboveFold : computeAboveFold(),
       parked: boardState.parked,
@@ -121,17 +135,46 @@ export default function App() {
   return (
     <>
       {step === 'intro' && (
-        <div className="step active" id="s-intro">
-          <h1>Design your ideal first screen</h1>
-          <p>We're rethinking the first screen of the Blockstream app and want it built around how <strong>you</strong> think, not how we do. This takes about <strong>5 minutes</strong>: you'll answer 3 quick questions, then arrange the pieces of the app into your ideal first screen.</p>
-          <p>Responses are anonymous and used only to inform the app's design.</p>
-          <button className="btn" onClick={() => setStep('screener')}>Start</button>
+        <div className="step active intro" id="s-intro">
+          <img className="brand" src="/blockstream-logo.svg" alt="Blockstream" width="309" height="69" />
+          <div className="kicker">App design study</div>
+          <h1>What should the first screen of your <span className="hl">self-custody bank</span> look like?</h1>
+          <p className="lede">
+            For years the app has been a place to hold bitcoin. We want it to become the place you run your
+            money from — without ever handing over your keys.
+          </p>
+
+          <div className="shift">
+            <div className="shift-card from">
+              <div className="shift-lab">Today</div>
+              <div className="shift-t">A wallet app</div>
+              <div className="shift-d">You open it to send, receive and check one wallet at a time.</div>
+            </div>
+            <div className="shift-arrow" aria-hidden="true">→</div>
+            <div className="shift-card to">
+              <div className="shift-lab">Where we're going</div>
+              <div className="shift-t">A financial OS</div>
+              <div className="shift-d">Everything you hold — across your wallets, across chains and currencies — in one place. Still yours. Still self-custodied.</div>
+            </div>
+          </div>
+
+          <p className="punch">One screen. Room for very little. You decide what earns a place.</p>
+
+          <div className="steps3">
+            <div className="s3"><span className="n">1</span> Six quick questions about how you hold today</div>
+            <div className="s3"><span className="n">2</span> Build your ideal first screen from the real pieces</div>
+            <div className="s3"><span className="n">3</span> Three last calls on what earns the top spot</div>
+          </div>
+
+          <button className="btn" onClick={() => setStep('screener')}>Start — about 4 minutes</button>
+          <p className="fineprint">Anonymous. Used only to shape the next version of the app.</p>
         </div>
       )}
 
       {step === 'screener' && (
         <div className="step active" id="s-screener">
-          <h1>Three quick questions</h1>
+          <h1>First, how you hold today</h1>
+          <p>Six quick questions — about a minute.</p>
           <div className="qbox">
             <div className="qt">How often do you use the Blockstream app?</div>
             <Radio name="freq" value="daily" sel={freq} set={setFreq}>Most days</Radio>
@@ -140,10 +183,32 @@ export default function App() {
             <Radio name="freq" value="rarely" sel={freq} set={setFreq}>Less than monthly / I don't use it</Radio>
           </div>
           <div className="qbox">
-            <div className="qt">How many wallets do you have set up in the app?</div>
+            <div className="qt">How many wallets do you have set up in the Blockstream app?</div>
             <Radio name="wallets" value="one" sel={wallets} set={setWallets}>One</Radio>
             <Radio name="wallets" value="two" sel={wallets} set={setWallets}>Two</Radio>
             <Radio name="wallets" value="many" sel={wallets} set={setWallets}>More than two</Radio>
+          </div>
+          <div className="qbox">
+            <div className="qt">And in total — across every app, device and exchange you use?</div>
+            <Radio name="walletsAll" value="one" sel={walletsAll} set={setWalletsAll}>Just the one</Radio>
+            <Radio name="walletsAll" value="two" sel={walletsAll} set={setWalletsAll}>Two</Radio>
+            <Radio name="walletsAll" value="three_five" sel={walletsAll} set={setWalletsAll}>Three to five</Radio>
+            <Radio name="walletsAll" value="six_plus" sel={walletsAll} set={setWalletsAll}>More than five</Radio>
+          </div>
+          <div className="qbox">
+            <div className="qt">Where else do you keep bitcoin or other crypto? <span className="qsub">Tick everything that applies.</span></div>
+            <Check name="heldWhere" value="hardware" sel={heldWhere} set={setHeldWhere}>A hardware wallet (Jade, Ledger, Trezor…)</Check>
+            <Check name="heldWhere" value="other_app" sel={heldWhere} set={setHeldWhere}>Another phone app</Check>
+            <Check name="heldWhere" value="desktop" sel={heldWhere} set={setHeldWhere}>A desktop wallet (Sparrow, Electrum…)</Check>
+            <Check name="heldWhere" value="exchange" sel={heldWhere} set={setHeldWhere}>An exchange account</Check>
+            <Check name="heldWhere" value="nowhere" sel={heldWhere} set={setHeldWhere}>Nowhere else — it's all in the Blockstream app</Check>
+          </div>
+          <div className="qbox">
+            <div className="qt">If the Blockstream app could show those other wallets alongside your own, would you want that?</div>
+            <Radio name="connect" value="full" sel={connect} set={setConnect}>Yes — see them and spend from them</Radio>
+            <Radio name="connect" value="view" sel={connect} set={setConnect}>Yes, but view only — I'd still spend elsewhere</Radio>
+            <Radio name="connect" value="no" sel={connect} set={setConnect}>No — I want them kept separate</Radio>
+            <Radio name="connect" value="unsure" sel={connect} set={setConnect}>Not sure</Radio>
           </div>
           <div className="qbox">
             <div className="qt">"I go out of my way to protect my financial privacy."</div>

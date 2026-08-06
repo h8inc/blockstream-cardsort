@@ -158,10 +158,13 @@ const CARDS = [
 ];
 let raw=[];         // all loaded responses
 let seg='all';      // segment filter
-const SEGS=[['all','All'],['one','1 wallet'],['two','2 wallets'],['many','3+ wallets'],['multi','2 or more'],['privacy','Privacy-focused']];
+const SEGS=[['all','All'],['one','1 wallet'],['two','2 wallets'],['many','3+ wallets'],['multi','2 or more'],
+  ['spread','Holds elsewhere too'],['wantsconnect','Would connect wallets'],['privacy','Privacy-focused']];
 // 'multi' was the pre-2026-08-06 value for "two or more"; treat it as 2+ so old exports still segment.
 const isMulti=r=>['two','many','multi'].includes(r.screener&&r.screener.wallets);
 const walletLabel=r=>({one:'1 wallet',two:'2 wallets',many:'3+ wallets',multi:'2+ wallets'})[r.screener&&r.screener.wallets]||'wallets n/a';
+// Holds crypto outside the Blockstream app — the audience the "connect your other wallets" work targets.
+const holdsElsewhere=r=>{const h=(r.screener&&r.screener.heldWhere)||[]; return h.some(v=>v!=='nowhere');};
 
 const $=id=>document.getElementById(id);
 function label(id){const c=CARDS.find(c=>c.id===id); return c?c.label:id;}
@@ -220,6 +223,8 @@ function inSeg(r){
   if(seg==='one') return r.screener && r.screener.wallets==='one';
   if(seg==='two') return r.screener && r.screener.wallets==='two';
   if(seg==='many') return r.screener && r.screener.wallets==='many';
+  if(seg==='spread') return holdsElsewhere(r);
+  if(seg==='wantsconnect') return ['full','view'].includes(r.screener&&r.screener.connect);
   if(seg==='privacy') return r.screener && r.screener.privacy==='agree';
   return true;
 }
@@ -283,6 +288,7 @@ function render(){
     [durs.length? Math.round(median(durs))+'s':'—','median duration'],
     [rs.filter(r=>r.screener&&r.screener.wallets==='two').length,'with exactly 2 wallets'],
     [rs.filter(r=>r.screener&&r.screener.wallets==='many').length,'with 3+ wallets'],
+    [rs.filter(holdsElsewhere).length,'hold crypto elsewhere too'],
     [rs.filter(r=>r.screener&&r.screener.privacy==='agree').length,'privacy-focused'],
   ].map(([v,l])=>`<div class="tile"><div class="v">${v}</div><div class="l">${l}</div></div>`).join('');
 
@@ -348,6 +354,13 @@ function render(){
     ['Cash belongs: inside the asset list', cnt('cashHome','in_assets'), cl('cashHome')],
     ['Cash belongs: in the wallet list, as a cash account', cnt('cashHome','in_wallets'), cl('cashHome')],
     ['Cash belongs: not on the first screen', cnt('cashHome','not_first'), cl('cashHome')],
+    ['Holds crypto outside the Blockstream app', rs.filter(holdsElsewhere).length, N],
+    ['Has 3+ wallets across everything they use', rs.filter(r=>['three_five','six_plus'].includes(r.screener&&r.screener.walletsAll)).length, N],
+    ['Would connect other wallets (view or spend)', rs.filter(r=>['full','view'].includes(r.screener&&r.screener.connect)).length, N],
+    ['Would connect and spend from them', rs.filter(r=>(r.screener&&r.screener.connect)==='full').length, N],
+    ['Wants other wallets kept separate', rs.filter(r=>(r.screener&&r.screener.connect)==='no').length, N],
+    ['Also holds on a hardware wallet', rs.filter(r=>((r.screener&&r.screener.heldWhere)||[]).includes('hardware')).length, N],
+    ['Also holds on an exchange', rs.filter(r=>((r.screener&&r.screener.heldWhere)||[]).includes('exchange')).length, N],
   ];
   $('dqTable').innerHTML='<tr><th>Question</th><th>Count</th><th>Share</th><th>Read</th></tr>'+
     dq.map(([q,n,d])=>{const sh=d? n/d:0;

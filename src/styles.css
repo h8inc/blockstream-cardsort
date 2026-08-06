@@ -17,6 +17,7 @@
   .btn.secondary{background:#fff; color:var(--ink); border:1.5px solid var(--ink);}
   .qbox{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px; margin:14px 0; max-width:640px;}
   .qbox .qt{font-weight:650; margin-bottom:10px;}
+  .qbox .qsub{font-weight:400; font-size:13px; color:var(--muted);}
   .opt{display:flex; align-items:center; gap:10px; padding:10px 12px; border:1.5px solid var(--line);
     border-radius:10px; margin:8px 0; cursor:pointer; background:#fff;}
   .opt.sel{border-color:var(--accent); background:#f0f6fd;}
@@ -110,6 +111,48 @@
     padding:0 26px 10px; font-size:15px; font-weight:500; color:#fafafa; flex:none;
     font-family:Inter,-apple-system,sans-serif;}
   .statusbar .sright{letter-spacing:2px; font-size:13px;}
+  /* ---- intro: the wallet-app -> financial-OS frame ---- */
+  @keyframes riseIn{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:none;}}
+  .intro > *{animation:riseIn .5s both;}
+  .intro > *:nth-child(1){animation-delay:.02s} .intro > *:nth-child(2){animation-delay:.08s}
+  .intro > *:nth-child(3){animation-delay:.16s} .intro > *:nth-child(4){animation-delay:.24s}
+  .intro > *:nth-child(5){animation-delay:.34s} .intro > *:nth-child(6){animation-delay:.42s}
+  .intro > *:nth-child(7){animation-delay:.5s}  .intro > *:nth-child(8){animation-delay:.56s}
+  @media (prefers-reduced-motion:reduce){ .intro > *{animation:none;} }
+  .intro{max-width:760px;}
+  .brand{display:block; width:190px; height:auto; margin:4px 0 18px;}
+  .kicker{font-size:12px; font-weight:750; letter-spacing:1.2px; text-transform:uppercase;
+    color:var(--muted); margin-bottom:10px;}
+  @media (max-width:620px){ .brand{width:158px; margin-bottom:14px;} }
+  .intro h1{font-size:34px; line-height:1.18; letter-spacing:-.5px; max-width:22ch; margin:0 0 14px;}
+  .intro h1 .hl{background:linear-gradient(transparent 62%, #bfe6ff 62%); padding:0 2px; white-space:nowrap;}
+  .intro .lede{font-size:18px; line-height:1.5; color:var(--ink2); max-width:60ch;}
+  .shift{display:flex; align-items:stretch; gap:14px; margin:22px 0 6px; flex-wrap:wrap;}
+  .shift-card{flex:1 1 250px; border-radius:14px; padding:16px 18px; transition:transform .18s ease, box-shadow .18s ease;}
+  .shift-card:hover{transform:translateY(-3px);}
+  .shift-card.from{background:var(--surface); border:1px solid var(--line);}
+  .shift-card.from:hover{box-shadow:0 8px 22px rgba(0,0,0,.06);}
+  .shift-card.to{background:#0f1216; border:1px solid #262626; color:#fafafa;}
+  .shift-card.to:hover{box-shadow:0 10px 30px rgba(0,60,90,.28);}
+  .shift-lab{font-size:11px; font-weight:750; letter-spacing:.9px; text-transform:uppercase; color:var(--muted);}
+  .shift-card.to .shift-lab{color:#00bcff;}
+  .shift-t{font-size:19px; font-weight:700; margin:5px 0 6px;}
+  .shift-d{font-size:14px; line-height:1.45; color:var(--ink2);}
+  .shift-card.to .shift-d{color:#a0a0a0;}
+  .shift-arrow{align-self:center; font-size:22px; color:var(--muted); flex:none;}
+  .punch{font-size:19px; font-weight:650; color:var(--ink); margin:22px 0 4px; max-width:none;}
+  .steps3{display:flex; flex-direction:column; gap:8px; margin:18px 0 22px; max-width:60ch;}
+  .s3{display:flex; align-items:center; gap:11px; font-size:15px; color:var(--ink2);}
+  .s3 .n{flex:none; width:24px; height:24px; border-radius:50%; background:var(--ink); color:#fff;
+    font-size:12.5px; font-weight:700; display:flex; align-items:center; justify-content:center;}
+  .fineprint{font-size:12.5px; color:var(--muted); margin-top:14px;}
+  @media (max-width:620px){
+    .intro h1{font-size:27px; max-width:none;}
+    .intro .lede{font-size:16.5px;}
+    .shift{flex-direction:column; gap:10px;}
+    .shift-card{flex:0 0 auto;}
+    .shift-arrow{transform:rotate(90deg); align-self:center; margin:0;}
+  }
   /* floating "remove" drop target — only visible while a drag is in progress */
   .parkdock{position:fixed; left:12px; right:12px; bottom:74px; z-index:60; display:none;
     align-items:center; justify-content:center; gap:8px; height:56px;
