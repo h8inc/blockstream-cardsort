@@ -222,6 +222,13 @@ export default function App() {
         <div className="step active" id="s-sort" ref={sortRef}>
           <h1>Build your first screen</h1>
           <p>Imagine opening the app fresh tomorrow. Every piece needs a decision: <strong>tap or drag it into the phone</strong> (stacked in your ideal order), or send it to <strong>"Not on my first screen"</strong> — tap the <strong>✕</strong> on the piece, or drag it to the red zone by the phone. Rejecting a piece doesn't delete it from the app; it just stays off your first screen. Small pieces sit <strong>side by side</strong> automatically, and the phone scrolls inside — what fits in the frame is what you'd see <strong>without scrolling</strong>.</p>
+          <div className="parkzone" id="park">
+            <div className="zhead">
+              <span className="zt">🚫 NOT ON MY FIRST SCREEN</span>
+              <span className="zs">drop pieces here, or tap the <b>✕</b> on a piece — it can still live deeper in the app</span>
+            </div>
+            <div className="cards" id="parkCards"></div>
+          </div>
           <div className="sortwrap">
             <div className="pilecol">
               <h2>The pieces <span className="counts" id="pileCount">
@@ -232,11 +239,6 @@ export default function App() {
             <div className="phonecol">
               <div className="reorderhint" id="reorderHint" style={{ display: 'none' }}>
                 ⠿ <b>Grab any piece</b> in the phone and drag it up or down to change the order
-              </div>
-              <div className="parkzone" id="park">
-                <div className="zt">🚫 NOT ON MY FIRST SCREEN</div>
-                <div className="zs">drop pieces here, or tap the <b>✕</b> on a piece — it can still live deeper in the app</div>
-                <div className="cards" id="parkCards"></div>
               </div>
               <div className="scalebox" id="scalebox">
                 <div className="phone" id="phoneEl">

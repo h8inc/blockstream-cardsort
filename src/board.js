@@ -104,7 +104,7 @@ export function fitPhone() {
   if (!$root) return;
   const ring = 10;
   const availW = Math.min(innerWidth - (innerWidth > 760 ? 560 : 32), 500);
-  const availH = innerHeight - 250; // leave room for the always-visible reject zone above the phone
+  const availH = innerHeight - 160; // the reject zone is full-width above the columns now, not stacked on the phone
   const s = Math.max(0.35, Math.min(1, availW / (SCREEN_W + 2 * ring), availH / (SCREEN_H + 2 * ring)));
   const ph = $('phoneEl'), box = $('scalebox');
   if (!ph) return;

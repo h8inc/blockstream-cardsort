@@ -36,13 +36,16 @@
      to fit the viewport. Proportions are physically correct at every window size. */
   .scalebox{position:relative;}
   .pile{display:flex; flex-wrap:wrap; gap:10px; align-content:flex-start; align-items:flex-start;}
-  /* width:0 + min-width:100% keeps the zone from contributing to the column's
-     max-content width, so parked chips can never widen the column. */
-  .parkzone{width:0; min-width:100%; flex:none; margin-bottom:10px; background:#fff0f0; border:2px dashed #d97c7c;
-    border-radius:14px; padding:12px 14px; min-height:78px; box-sizing:border-box;}
-  .parkzone .zt{font-weight:800; font-size:15px; color:#a04545; letter-spacing:.3px;}
-  .parkzone .zs{font-size:12px; color:#b96a6a; margin:3px 0 8px;}
-  .parkzone .cards{display:flex; flex-wrap:wrap; gap:8px;}
+  /* Full width above both columns: inside the narrow phone column the chips
+     stacked one per row and the zone grew tall enough to push the phone down. */
+  .parkzone{margin:0 0 14px; background:#fff0f0; border:2px dashed #d97c7c;
+    border-radius:14px; padding:11px 14px 12px; min-height:62px;}
+  .zhead{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:9px;}
+  .parkzone .zt{font-weight:800; font-size:14.5px; color:#a04545; letter-spacing:.3px; white-space:nowrap;}
+  .parkzone .zs{font-size:12px; color:#b96a6a;}
+  /* Capped so a full set of rejects can't grow into a screen-high wall of chips
+     (7 rows on a narrow phone); the header stays put and the chips scroll. */
+  .parkzone .cards{display:flex; flex-wrap:wrap; gap:8px; max-height:130px; overflow-y:auto;}
   .phone{background:#0a0a0a; border-radius:44px; padding:0; width:393px;
     position:absolute; top:10px; left:10px; transform-origin:top left; overflow:hidden;
     box-shadow:0 0 0 10px #1a1d21, 0 18px 50px rgba(0,0,0,.4);}
