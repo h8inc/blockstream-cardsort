@@ -36,8 +36,10 @@
      to fit the viewport. Proportions are physically correct at every window size. */
   .scalebox{position:relative;}
   .pile{display:flex; flex-wrap:wrap; gap:10px; align-content:flex-start; align-items:flex-start;}
-  .parkzone{width:100%; flex:none; margin-bottom:10px; background:#fff0f0; border:2px dashed #d97c7c;
-    border-radius:14px; padding:12px 14px; min-height:78px;}
+  /* width:0 + min-width:100% keeps the zone from contributing to the column's
+     max-content width, so parked chips can never widen the column. */
+  .parkzone{width:0; min-width:100%; flex:none; margin-bottom:10px; background:#fff0f0; border:2px dashed #d97c7c;
+    border-radius:14px; padding:12px 14px; min-height:78px; box-sizing:border-box;}
   .parkzone .zt{font-weight:800; font-size:15px; color:#a04545; letter-spacing:.3px;}
   .parkzone .zs{font-size:12px; color:#b96a6a; margin:3px 0 8px;}
   .parkzone .cards{display:flex; flex-wrap:wrap; gap:8px;}
@@ -176,7 +178,7 @@
   .card.instack:hover .grip{color:#fafafa; border-color:#00bcff;}
   .cap .drg{float:right; font-size:9.5px; font-weight:600; color:#8b98a5; border:1px solid #2b333b;
     border-radius:99px; padding:2px 7px; margin-left:6px; letter-spacing:.3px; text-transform:uppercase;}
-  .reorderhint{width:100%; flex:none; font-size:12.5px; color:var(--ink2); text-align:center; margin-top:10px;}
+  .reorderhint{width:0; min-width:100%; flex:none; font-size:12.5px; color:var(--ink2); text-align:center; margin-top:10px;}
   .reorderhint b{color:var(--ink);}
   /* pile grouping + captions */
   .pgh{width:100%; flex:none; font-size:13px; font-weight:750; color:var(--ink2);

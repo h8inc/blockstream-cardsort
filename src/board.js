@@ -109,8 +109,14 @@ export function fitPhone() {
   const ph = $('phoneEl'), box = $('scalebox');
   if (!ph) return;
   ph.style.transform = 'scale(' + s + ')';
-  box.style.width = Math.round((SCREEN_W + 2 * ring) * s) + 'px';
+  const boxW = Math.round((SCREEN_W + 2 * ring) * s);
+  box.style.width = boxW + 'px';
   box.style.height = Math.round((SCREEN_H + 2 * ring) * s + 20) + 'px';
+  // Pin the column to the phone's width. The column is a flex item with flex:none,
+  // so without this its width is the max-content of its widest child — the reject
+  // zone, which grows with every parked chip and starves the pile column to nothing.
+  const col = ph.closest('.phonecol');
+  if (col) col.style.width = innerWidth > 760 ? boxW + 'px' : '';
 }
 
 function renderStack() {
