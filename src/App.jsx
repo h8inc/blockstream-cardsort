@@ -221,11 +221,13 @@ export default function App() {
       {step === 'sort' && (
         <div className="step active" id="s-sort" ref={sortRef}>
           <h1>Build your first screen</h1>
-          <p>Imagine opening the app fresh tomorrow. Every piece needs a decision: <strong>tap or drag it into the phone</strong> (stacked in your ideal order), or send it to <strong>"Not on my first screen"</strong> — tap the <strong>✕</strong> on the piece, or drag it to the red zone by the phone. Rejecting a piece doesn't delete it from the app; it just stays off your first screen. Small pieces sit <strong>side by side</strong> automatically, and the phone scrolls inside — what fits in the frame is what you'd see <strong>without scrolling</strong>.</p>
+          <p><strong>This is the screen you'd land on every time you open the app.</strong> Whatever you put here is what you'd see and reach for first — and whatever you leave off, you'd have to go looking for. So build the one you'd actually want to use.</p>
+          <p><strong>Every piece needs a home — all {board.total} of them.</strong> Tap or drag a piece into the phone (stacked in your ideal order), or send it to <strong>"Not on my first screen"</strong> with the <strong>✕</strong> or by dragging it to the red zone. Leaving a piece off doesn't delete it from the app; it just lives deeper in.</p>
+          <p className="undoline">Changed your mind? Drag a piece back to the list, or tap a rejected piece to undo. Small pieces sit <strong>side by side</strong> automatically, and the phone scrolls inside — what fits in the frame is what you'd see <strong>without scrolling</strong>.</p>
           <div className="parkzone" id="park">
             <div className="zhead">
               <span className="zt">🚫 NOT ON MY FIRST SCREEN</span>
-              <span className="zs">drop pieces here, or tap the <b>✕</b> on a piece — it can still live deeper in the app</span>
+              <span className="zs">drop pieces here, or tap the <b>✕</b> on a piece — it still lives deeper in the app. Tap a piece below to put it back.</span>
             </div>
             <div className="cards" id="parkCards"></div>
           </div>
@@ -235,6 +237,10 @@ export default function App() {
                 {board.placed < board.total ? `· ${board.total - board.placed} left to place` : '· all placed ✓'}
               </span></h2>
               <div className="pile" id="pile"></div>
+              <div className="pileempty" id="pileEmpty" style={{ display: 'none' }}>
+                ✓ Every piece has a home.<br />
+                <span>Changed your mind? Drag one back here, or tap a rejected piece above.</span>
+              </div>
             </div>
             <div className="phonecol">
               <div className="reorderhint" id="reorderHint" style={{ display: 'none' }}>
@@ -253,11 +259,17 @@ export default function App() {
           </div>
           <div className="parkdock" id="parkDock">🚫 Drop here — NOT ON MY FIRST SCREEN</div>
           <div className="bar">
-            <span className="hint" id="sortHint">
-              {board.placed < board.total ? `Place all pieces to continue (${board.total - board.placed} left)`
-                : board.inStack === 0 ? 'Your phone is empty — put at least one piece in it'
-                : 'Nice. Continue when it feels right.'}
-            </span>
+            <div className="barleft">
+              <div className="pbar" aria-hidden="true">
+                <i style={{ width: `${Math.round(100 * board.placed / (board.total || 1))}%` }} />
+              </div>
+              <span className="hint" id="sortHint">
+                {board.placed < board.total
+                  ? `${board.placed} of ${board.total} pieces placed — every piece needs a home before you continue`
+                  : board.inStack === 0 ? 'Your phone is empty — put at least one piece in it'
+                  : `All ${board.total} placed. Continue when it feels right.`}
+              </span>
+            </div>
             <button className="btn" id="sortNext" disabled={!sortDone} onClick={finishSort}>Continue</button>
           </div>
         </div>
@@ -266,6 +278,7 @@ export default function App() {
       {step === 'closers' && (
         <div className="step active" id="s-closers">
           <h1>Almost done</h1>
+          <p>Three last calls on the screen you just built — the one you'd open the app to every day.</p>
           <div className="qbox">
             <div className="qt">The moment you open the app, the very top has room for <strong>one big number</strong>.</div>
             <p style={{ fontSize: 14, margin: '0 0 10px' }}>

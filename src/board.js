@@ -75,6 +75,7 @@ function cardEl(c, mode) {
     }
   } else {
     el.textContent = mode === 'parked' ? (SHORT[c.id] || c.label) : c.label;
+    if (mode === 'parked') el.title = 'Tap to put this back in the list';
   }
   el.style.height = mode === 'parked' ? '34px'
     : mode === 'instack' ? c.h + 'px'
@@ -119,6 +120,26 @@ export function fitPhone() {
   if (col) col.style.width = innerWidth > 760 ? boxW + 'px' : '';
 }
 
+// The pile is a live view of whatever is still unplaced, so a piece can always
+// come back out of the phone or the reject zone. pileOrder keeps the shuffle stable.
+let pileOrder = [];
+function renderPile() {
+  const pile = $('pile'); if (!pile) return;
+  pile.innerHTML = '';
+  const placed = id => boardState.stackOrder.includes(id) || boardState.parked.includes(id);
+  GROUPS.forEach(g => {
+    const ids = pileOrder.filter(id => !placed(id) && CARDS.find(c => c.id === id).group === g.id);
+    if (!ids.length) return;
+    const h = document.createElement('div');
+    h.className = 'pgh';
+    h.textContent = g.title;
+    pile.appendChild(h);
+    ids.forEach(id => pile.appendChild(cardEl(CARDS.find(c => c.id === id), 'inpile')));
+  });
+  const empty = $('pileEmpty');
+  if (empty) empty.style.display = pile.children.length ? 'none' : '';
+  fitPileFaces();
+}
 function renderStack() {
   const st = $('stack'); st.innerHTML = '';
   boardState.stackOrder.forEach(id => st.appendChild(cardEl(CARDS.find(c => c.id === id), 'instack')));
@@ -128,7 +149,7 @@ function renderPark() {
   boardState.parked.forEach(id => pk.appendChild(cardEl(CARDS.find(c => c.id === id), 'parked')));
 }
 function refresh() {
-  renderStack(); renderPark();
+  renderPile(); renderStack(); renderPark();
   const hint = $('reorderHint');
   if (hint) hint.style.display = (boardState.stackOrder.length >= 2 && !reorderDone) ? '' : 'none';
   onChange && onChange({
@@ -155,6 +176,13 @@ export function placeInPark(id) {
   boardState.parked.push(id);
   refresh();
   boardState.events.push({ t: Date.now() - boardState.startedAt, a: 'park', id });
+}
+// Undo a placement: the piece goes back to the pile so it can be decided again.
+export function placeInPile(id) {
+  if (!boardState.stackOrder.includes(id) && !boardState.parked.includes(id)) return;
+  removeEverywhere(id);
+  refresh();
+  boardState.events.push({ t: Date.now() - boardState.startedAt, a: 'unplace', id });
 }
 
 /* ---- fold ---- */
@@ -193,6 +221,7 @@ function zoneAt(x, y) {
     if (el.id === 'parkDock' || (el.closest && el.closest('#parkDock'))) return 'park';
     if (el.id === 'stack' || (el.closest && el.closest('.phone'))) return 'stack';
     if (el.id === 'park' || (el.closest && el.closest('#park'))) return 'park';
+    if (el.id === 'pile' || (el.closest && el.closest('.pilecol'))) return 'pile';
   }
   return null;
 }
@@ -239,6 +268,8 @@ function updateDropUI() {
   $('park').classList.toggle('zone-hover', t === 'park');
   const dock = $('parkDock');
   if (dock) dock.classList.toggle('zone-hover', t === 'park');
+  const pileEl = $('pile');
+  if (pileEl) pileEl.classList.toggle('zone-hover', t === 'pile' && !drag.card.classList.contains('inpile'));
   if (t === 'stack') showDropline(drag.y, drag.x);
 }
 function onDown(e) {
@@ -284,11 +315,16 @@ function onUp(e) {
   // elementsFromPoint miss it and silently swallow the drop.
   const t = moved ? zoneAt(e.clientX, e.clientY) : null;
   $('park').classList.remove('zone-hover');
+  const pileEl = $('pile');
+  if (pileEl) pileEl.classList.remove('zone-hover');
   const dock = $('parkDock');
   if (dock) dock.classList.remove('on', 'zone-hover');
   if (moved) {
     if (t === 'stack') placeInStack(id, stackIndexAt(e.clientY, e.clientX));
     else if (t === 'park') placeInPark(id);
+    else if (t === 'pile') placeInPile(id);
+  } else if (card.classList.contains('parked')) {
+    placeInPile(id); // tap a rejected chip to put it back in the pile
   } else if (card.classList.contains('inpile')) {
     placeInStack(id, boardState.stackOrder.length);
     const sw = $('stackwrap'); sw.scrollTop = sw.scrollHeight;
@@ -308,17 +344,9 @@ export function initBoard(rootEl, changeCb) {
   $root = rootEl; onChange = changeCb;
   boardState.stackOrder = []; boardState.parked = []; boardState.events = [];
   reorderDone = false;
-  const pile = $('pile'); pile.innerHTML = '';
-  // Grouped pile: fixed section order, cards shuffled within their group to limit order bias.
-  GROUPS.forEach(g => {
-    const cards = CARDS.filter(c => c.group === g.id);
-    if (!cards.length) return;
-    const h = document.createElement('div');
-    h.className = 'pgh';
-    h.textContent = g.title;
-    pile.appendChild(h);
-    [...cards].sort(() => Math.random() - 0.5).forEach(c => pile.appendChild(cardEl(c, 'inpile')));
-  });
+  // Fixed section order, shuffled within each group to limit order bias.
+  pileOrder = GROUPS.flatMap(g =>
+    CARDS.filter(c => c.group === g.id).map(c => c.id).sort(() => Math.random() - 0.5));
   fitPhone(); refresh(); requestAnimationFrame(fitPileFaces);
   const opts = [['pointerdown', onDown], ['pointermove', onMove], ['pointerup', onUp]];
   opts.forEach(([ev, fn]) => document.addEventListener(ev, fn));
