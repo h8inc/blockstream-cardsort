@@ -209,10 +209,10 @@ export default function App() {
             <Radio name="connect" value="unsure" sel={connect} set={setConnect}>Not sure</Radio>
           </div>
           <div className="qbox">
-            <div className="qt">"I go out of my way to protect my financial privacy."</div>
-            <Radio name="privacy" value="agree" sel={privacy} set={setPrivacy}>Agree</Radio>
-            <Radio name="privacy" value="neutral" sel={privacy} set={setPrivacy}>Somewhere in between</Radio>
-            <Radio name="privacy" value="disagree" sel={privacy} set={setPrivacy}>Disagree</Radio>
+            <div className="qt">Do you take extra steps to keep your money private?</div>
+            <Radio name="privacy" value="agree" sel={privacy} set={setPrivacy}>Yes, often</Radio>
+            <Radio name="privacy" value="neutral" sel={privacy} set={setPrivacy}>Sometimes</Radio>
+            <Radio name="privacy" value="disagree" sel={privacy} set={setPrivacy}>No, not really</Radio>
           </div>
           <button className="btn" id="scrNext" disabled={!screenerDone} onClick={finishScreener}>Continue</button>
         </div>
