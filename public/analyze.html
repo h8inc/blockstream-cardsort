@@ -166,6 +166,9 @@ const isMulti=r=>['two','many','multi'].includes(r.screener&&r.screener.wallets)
 const walletLabel=r=>({one:'1 wallet',two:'2 wallets',many:'3+ wallets',multi:'2+ wallets'})[r.screener&&r.screener.wallets]||'wallets n/a';
 // Holds crypto outside the Blockstream app — the audience the "connect your other wallets" work targets.
 const holdsElsewhere=r=>{const h=(r.screener&&r.screener.heldWhere)||[]; return h.some(v=>v!=='nowhere');};
+// Older responses predate the scope question; infer from the sort so they still count.
+const askedScope=r=>(r.closers&&r.closers.askedActionScope) ??
+  (r.stackOrder||[]).some(id=>['actions','cash_act'].includes(id));
 
 const $=id=>document.getElementById(id);
 function label(id){const c=CARDS.find(c=>c.id===id); return c?c.label:id;}
@@ -357,6 +360,14 @@ function render(){
     ['Cash belongs: inside the asset list', cnt('cashHome','in_assets'), cl('cashHome')],
     ['Cash belongs: in the wallet list, as a cash account', cnt('cashHome','in_wallets'), cl('cashHome')],
     ['Cash belongs: not on the first screen', cnt('cashHome','not_first'), cl('cashHome')],
+    // Asked only of people who put action buttons on their first screen, so the
+    // denominator is that group — not everyone.
+    ['Put action buttons on the first screen (asked the scope question)', rs.filter(askedScope).length, N],
+    ['…of those: had not considered which wallet the action uses', cnt('actionScope','unaware'), cl('actionScope')],
+    ['…of those: wants to be asked which wallet every time', cnt('actionScope','ask'), cl('actionScope')],
+    ['…of those: wants a default wallet they can switch', cnt('actionScope','default'), cl('actionScope')],
+    ['…of those: wants whichever wallet they used last', cnt('actionScope','last'), cl('actionScope')],
+    ['…of those: wants the app to choose', cnt('actionScope','auto'), cl('actionScope')],
     ['Holds crypto outside the Blockstream app', rs.filter(holdsElsewhere).length, N],
     ['Has 3+ wallets across everything they use', rs.filter(r=>['three_five','six_plus'].includes(r.screener&&r.screener.walletsAll)).length, N],
     ['Would connect other wallets (view or spend)', rs.filter(r=>['full','view'].includes(r.screener&&r.screener.connect)).length, N],

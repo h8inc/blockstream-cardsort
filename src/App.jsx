@@ -39,6 +39,10 @@ export default function App() {
   const [oneNumber, setOneNumber] = useState(null);
   const [lens, setLens] = useState(null);
   const [cashHome, setCashHome] = useState(null);
+  const [actionScope, setActionScope] = useState(null);
+  // Which action pieces the participant actually put on their first screen —
+  // frozen when they leave the board so the follow-up only asks what applies.
+  const [placedActions, setPlacedActions] = useState([]);
   const [missing, setMissing] = useState('');
   const [submitState, setSubmitState] = useState('idle'); // idle|busy|sent|noendpoint|failed
   const sortRef = useRef(null);
@@ -56,7 +60,8 @@ export default function App() {
 
   const screenerDone = freq && wallets && walletsAll && heldWhere.length && connect && privacy;
   const sortDone = board.placed === board.total && board.inStack > 0;
-  const closersDone = oneNumber && lens && cashHome;
+  const asksActionScope = placedActions.length > 0;
+  const closersDone = oneNumber && lens && cashHome && (!asksActionScope || actionScope);
 
   // Nobody is screened out: infrequent and non-users sort too. Their answers are
   // flagged via screener.freq so the analyzer can segment (or exclude) after the fact,
@@ -66,6 +71,7 @@ export default function App() {
   // the size-aware prioritisation signal that replaced the old "pick 4" squeeze.
   function finishSort() {
     setAboveFold(measureAboveFold());
+    setPlacedActions(['actions', 'cash_act'].filter(id => boardState.stackOrder.includes(id)));
     setStep('closers');
   }
   function buildPayload(screenedOut = false) {
@@ -79,7 +85,7 @@ export default function App() {
       stackOrder: boardState.stackOrder,
       aboveFold: aboveFold.length ? aboveFold : computeAboveFold(),
       parked: boardState.parked,
-      closers: { oneNumber, lens, cashHome, missing },
+      closers: { oneNumber, lens, cashHome, actionScope, askedActionScope: asksActionScope, missing },
       events: boardState.events.slice(0, 200),
       meta: { ua: navigator.userAgent, vw: innerWidth, vh: innerHeight,
               screenW: SCREEN_W, screenH: SCREEN_H, foldPx: FOLD_PX },
@@ -303,6 +309,23 @@ export default function App() {
             <Radio name="lens" value="asset" sel={lens} set={setLens}>By asset (bitcoin, tether, cash…)</Radio>
             <Radio name="lens" value="toggle" sel={lens} set={setLens}>Both — let me toggle between them</Radio>
           </div>
+          {asksActionScope && (
+            <div className="qbox">
+              <div className="qt">
+                You put {placedActions.includes('actions') ? <b>Buy · Send · Receive</b> : <b>the cash buttons</b>}
+                {placedActions.length === 2 && <> and <b>the cash buttons</b></>} on your first screen.
+              </div>
+              <p style={{ fontSize: 14, margin: '0 0 10px' }}>
+                That screen shows everything at once — every wallet, and your cash. So when you tap <strong>Send</strong> there,
+                which money should it come from?
+              </p>
+              <Radio name="actionScope" value="ask" sel={actionScope} set={setActionScope}>Ask me which wallet, every time</Radio>
+              <Radio name="actionScope" value="default" sel={actionScope} set={setActionScope}>Use one wallet I've set as the default — but let me switch</Radio>
+              <Radio name="actionScope" value="last" sel={actionScope} set={setActionScope}>Whichever wallet I used last</Radio>
+              <Radio name="actionScope" value="auto" sel={actionScope} set={setActionScope}>Let the app choose the best one for me</Radio>
+              <Radio name="actionScope" value="unaware" sel={actionScope} set={setActionScope}>Honestly, I hadn't thought about it — I assumed it would just know</Radio>
+            </div>
+          )}
           <div className="qbox">
             <div className="qt">Your cash (dollars) is held by Blockstream, not in a wallet you hold keys for. Where should it appear?</div>
             <Radio name="cashHome" value="own_row" sel={cashHome} set={setCashHome}>On its own row on the first screen</Radio>
