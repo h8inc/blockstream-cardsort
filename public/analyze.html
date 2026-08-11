@@ -360,9 +360,15 @@ function render(){
     ['Cash belongs: inside the asset list', cnt('cashHome','in_assets'), cl('cashHome')],
     ['Cash belongs: in the wallet list, as a cash account', cnt('cashHome','in_wallets'), cl('cashHome')],
     ['Cash belongs: not on the first screen', cnt('cashHome','not_first'), cl('cashHome')],
+    // Mental model, asked of everyone before anything reveals the answer.
+    ['MISREAD: thought the screen showed only one wallet', cnt('screenScope','one_wallet'), cl('screenScope')],
+    ['Read it as all wallets added together', cnt('screenScope','all_wallets'), cl('screenScope')],
+    ['Read it as all wallets plus cash', cnt('screenScope','all_plus_cash'), cl('screenScope')],
+    ['Was not sure what the screen showed', cnt('screenScope','unsure'), cl('screenScope')],
     // Asked only of people who put action buttons on their first screen, so the
     // denominator is that group — not everyone.
     ['Put action buttons on the first screen (asked the scope question)', rs.filter(askedScope).length, N],
+    ['…of those: changed their answer once told it aggregates', cnt('actionScope','one_wallet'), cl('actionScope')],
     ['…of those: had not considered which wallet the action uses', cnt('actionScope','unaware'), cl('actionScope')],
     ['…of those: wants to be asked which wallet every time', cnt('actionScope','ask'), cl('actionScope')],
     ['…of those: wants a default wallet they can switch', cnt('actionScope','default'), cl('actionScope')],
