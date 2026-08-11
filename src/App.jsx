@@ -58,12 +58,10 @@ export default function App() {
   const sortDone = board.placed === board.total && board.inStack > 0;
   const closersDone = oneNumber && lens && cashHome;
 
-  function finishScreener() {
-    if (freq === 'rarely') {
-      trySend(buildPayload(true));
-      setStep('out');
-    } else setStep('sort');
-  }
+  // Nobody is screened out: infrequent and non-users sort too. Their answers are
+  // flagged via screener.freq so the analyzer can segment (or exclude) after the fact,
+  // which beats throwing the response away at the door.
+  function finishScreener() { setStep('sort'); }
   // Measure what actually fits above the fold before leaving the board — this is
   // the size-aware prioritisation signal that replaced the old "pick 4" squeeze.
   function finishSort() {
@@ -331,13 +329,6 @@ export default function App() {
         </div>
       )}
 
-      {step === 'out' && (
-        <div className="step active" id="s-out">
-          <div className="done-ic">🙏</div>
-          <h1>Thanks for your interest!</h1>
-          <p>This particular study is for people currently using the Blockstream app at least monthly, so we'll stop here — but we appreciate you taking the time.</p>
-        </div>
-      )}
     </>
   );
 }

@@ -159,7 +159,8 @@ const CARDS = [
 let raw=[];         // all loaded responses
 let seg='all';      // segment filter
 const SEGS=[['all','All'],['one','1 wallet'],['two','2 wallets'],['many','3+ wallets'],['multi','2 or more'],
-  ['spread','Holds elsewhere too'],['wantsconnect','Would connect wallets'],['privacy','Privacy-focused']];
+  ['spread','Holds elsewhere too'],['wantsconnect','Would connect wallets'],['privacy','Privacy-focused'],
+  ['regular','Uses app monthly+'],['infrequent','Rarely / not a user']];
 // 'multi' was the pre-2026-08-06 value for "two or more"; treat it as 2+ so old exports still segment.
 const isMulti=r=>['two','many','multi'].includes(r.screener&&r.screener.wallets);
 const walletLabel=r=>({one:'1 wallet',two:'2 wallets',many:'3+ wallets',multi:'2+ wallets'})[r.screener&&r.screener.wallets]||'wallets n/a';
@@ -223,6 +224,8 @@ function inSeg(r){
   if(seg==='one') return r.screener && r.screener.wallets==='one';
   if(seg==='two') return r.screener && r.screener.wallets==='two';
   if(seg==='many') return r.screener && r.screener.wallets==='many';
+  if(seg==='regular') return ['daily','weekly','monthly'].includes(r.screener&&r.screener.freq);
+  if(seg==='infrequent') return (r.screener&&r.screener.freq)==='rarely';
   if(seg==='spread') return holdsElsewhere(r);
   if(seg==='wantsconnect') return ['full','view'].includes(r.screener&&r.screener.connect);
   if(seg==='privacy') return r.screener && r.screener.privacy==='agree';
