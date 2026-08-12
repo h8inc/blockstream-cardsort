@@ -82,7 +82,7 @@
 
   <div class="panel">
     <div class="loadrow">
-      <input type="text" id="url" placeholder="https://YOUR-SITE.netlify.app/api/collect?token=blockstream-test  (or an Apps Script /exec URL)">
+      <input type="text" id="url" placeholder="https://YOUR-SITE.netlify.app/api/entry?token=blockstream-test  (or an Apps Script /exec URL)">
       <button class="btn" onclick="fetchUrl()">Fetch</button>
       <button class="btn sec" onclick="document.getElementById('files').click()">Load files…</button>
       <input type="file" id="files" multiple accept=".json,.txt" style="display:none" onchange="loadFiles(this.files)">
@@ -193,7 +193,7 @@ function parseAny(text){
 }
 // When this page is served from the study site itself, its own endpoint is the default.
 const OWN_ENDPOINT = /^https?:$/.test(location.protocol)
-  ? location.origin + '/api/collect?token=blockstream-test' : '';
+  ? location.origin + '/api/entry?token=blockstream-test' : '';
 async function fetchUrl(quiet){
   const u=$('url').value.trim() || OWN_ENDPOINT;
   if(!u){ alert('Enter your collection endpoint URL first.'); return; }

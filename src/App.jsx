@@ -96,19 +96,29 @@ export default function App() {
   }
   async function trySend(payload) {
     if (!CONFIG.ENDPOINT_URL) return 'noendpoint';
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        const res = await fetch(CONFIG.ENDPOINT_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload),
-        });
-        if (res.ok) return 'sent';
-        if (res.status === 404) return 'noendpoint'; // running without the function (local file / plain host)
-      } catch (e) {}
-      await sleep(700 * (attempt + 1));
+    const body = JSON.stringify(payload);
+    // Primary first; the legacy alias second in case anything unexpected ever
+    // blocks the primary path the way "/api/collect" was blocked by ad blockers.
+    const urls = [CONFIG.ENDPOINT_URL, ...(CONFIG.ENDPOINT_FALLBACKS || [])];
+    let sawNetworkError = false, saw404 = false;
+    for (const url of urls) {
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body,
+            keepalive: true, // survives the tab closing right after Submit
+          });
+          if (res.ok) return 'sent';
+          if (res.status === 404) { saw404 = true; break; } // no function here — try next url
+          if (res.status >= 400 && res.status < 500) break; // permanent — retrying can't help
+        } catch (e) { sawNetworkError = true; }
+        await sleep(700 * (attempt + 1));
+      }
     }
-    return 'failed';
+    // Every url 404'd and nothing was actively blocked -> genuinely no endpoint (local preview).
+    return saw404 && !sawNetworkError ? 'noendpoint' : 'failed';
   }
   async function submit() {
     setSubmitState('busy');
@@ -372,7 +382,7 @@ export default function App() {
           )}
           {submitState === 'noendpoint' && (
             <p id="previewNote" style={{ fontSize: 13, color: 'var(--muted)' }}>
-              Preview mode: the collection endpoint isn't reachable here (deploy to Netlify and <code>/api/collect</code> just works). Nothing was sent.
+              Preview mode: the collection endpoint isn't reachable here (deploy to Netlify and <code>/api/entry</code> just works). Nothing was sent.
             </p>
           )}
         </div>

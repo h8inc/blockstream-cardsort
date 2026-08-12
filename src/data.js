@@ -1,6 +1,10 @@
 const CONFIG = {
   // Paste your Google Apps Script web-app URL here (see README / apps-script.gs). Leave "" to use download-only mode.
-  ENDPOINT_URL: "/api/collect", // built-in Netlify Function; override with a full URL if needed
+  // NOTE: path must never contain ad-blocker bait words (collect/track/event/
+  // beacon/stats) — "/api/collect" was silently blocked by uBlock/Brave for
+  // privacy-minded participants, which is exactly our audience.
+  ENDPOINT_URL: "/api/entry", // built-in Netlify Function; override with a full URL if needed
+  ENDPOINT_FALLBACKS: ["/api/collect"], // legacy alias, tried only if the primary fails
   // Shown in the fallback message if submission fails:
   CONTACT_EMAIL: "nterziev@blockstream.com",
   STUDY_NAME: "blockstream-first-screen-v1"

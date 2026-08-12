@@ -10,7 +10,7 @@ Option A — Netlify CLI (fastest):
     npm install
     npx netlify-cli login          # opens browser once
     npx netlify-cli init           # create the site (or `link` to an existing one)
-    npx netlify-cli deploy --prod  # builds + deploys app AND the /api/collect function
+    npx netlify-cli deploy --prod  # builds + deploys app AND the /api/entry function
 
 Option B — GitHub: push this folder to a repo, "Add new site → Import from Git"
 on app.netlify.com. netlify.toml configures everything.
@@ -21,9 +21,9 @@ Until you set it, the default is `blockstream-test` — fine for test data.
 
 ## How collection works
 
-- The app POSTs each response to `/api/collect` (same site, no CORS, retries x3).
+- The app POSTs each response to `/api/entry` (same site, no CORS, retries x3).
 - Responses land in Netlify Blobs (store `cardsort-responses`), de-duped by id.
-- Read them back: `https://YOUR-SITE.netlify.app/api/collect?token=<COLLECT_TOKEN>`
+- Read them back: `https://YOUR-SITE.netlify.app/api/entry?token=<COLLECT_TOKEN>`
 - `analyze.html` (served at /analyze.html) — paste that URL into its Fetch box.
   Keep the token private; consider removing analyze.html from public/ for the
   real study and running it locally instead.
@@ -33,7 +33,7 @@ Until you set it, the default is `blockstream-test` — fine for test data.
 
     npm install
     npx netlify-cli dev   # runs Vite + the function + local blobs at localhost:8888
-    # `npm run dev` also works, but /api/collect then 404s → app shows preview mode
+    # `npm run dev` also works, but /api/entry then 404s → app shows preview mode
 
 ## Structure
 

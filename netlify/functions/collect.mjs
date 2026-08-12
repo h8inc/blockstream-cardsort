@@ -1,6 +1,10 @@
 // Collection endpoint — Netlify Function + Netlify Blobs.
-// POST /api/collect            -> stores one response (JSON body, de-duped by id)
-// GET  /api/collect?token=...  -> returns {responses:[...]} for analyze.html
+// POST /api/entry            -> stores one response (JSON body, de-duped by id)
+// GET  /api/entry?token=...  -> returns {responses:[...]} for analyze.html
+// ("/api/collect" is kept as an alias for old cached bundles, but the word
+//  "collect" sits on EasyPrivacy/AdGuard filter lists — Umami Analytics used
+//  that path — so ad blockers and Brave silently kill requests to it. Two real
+//  participants lost their submit that way. Never advertise the old path.)
 // Token: set COLLECT_TOKEN in Netlify env (Site settings -> Environment variables).
 // Until you set it, the default below applies — fine for test data, change for the study.
 import { getStore } from '@netlify/blobs';
@@ -66,4 +70,4 @@ export default async (req) => {
   return Response.json({ error: 'method not allowed' }, { status: 405, headers: CORS });
 };
 
-export const config = { path: '/api/collect' };
+export const config = { path: ['/api/entry', '/api/collect'] };
